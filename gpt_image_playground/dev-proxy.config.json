@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "prefix": "/api-proxy",
+  "target": "https://aixor.org/v1",
+  "changeOrigin": true,
+  "secure": true
+}
