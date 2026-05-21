@@ -58,6 +58,9 @@ keyword_search.json
 *.db
 *.sqlite3
 
+# Personal files (local only)
+简历_AI应用工程师_虞阅洲.md
+
 # Random UUID-named images (temp screenshots)
 [0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*.png
 [0-9a-f]*.png
