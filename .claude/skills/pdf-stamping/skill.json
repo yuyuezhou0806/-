@@ -1,0 +1,18 @@
+{
+  "name": "pdf-stamping",
+  "description": "PDF 电子盖章工具 - 竖向骑缝章 + 乙方公章自动放大/添加，支持单文件与批量",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "name": "stamp-gui",
+      "description": "启动 GUI 工具 (推荐)",
+      "usage": "pdf_stamping.py 或双击 run.bat",
+      "script": "pdf_stamping.py"
+    }
+  ],
+  "requirements": [
+    "pymupdf",
+    "Pillow"
+  ],
+  "author": "custom"
+}

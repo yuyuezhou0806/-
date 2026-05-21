@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# Node.js
+node_modules/
+
+# Build / Distribution
+build/
+dist/
+*.spec
+
+# Executables (large binaries)
+*.exe
+
+# Office documents (large)
+*.pptx
+*.docx
+
+# Archives
+*.rar
+*.zip
+
+# IDE
+.vscode/
+.idea/
+
+# Claude local settings (may contain sensitive data)
+.claude/settings.local.json
+
+# Temporary / Test files
+test_*.pdf
+test_*.png
+final_*.png
+img*.png
+s*.png
+step*.png
+verify_*.png
+scan_files.txt
+ocr_result.txt
+
+# Output files
+result.xlsx
+copy_result.json
+matches*.json
+samples*.json
+archive*.json
+headers.json
+keyword_search.json
+
+# Database
+*.db
+*.sqlite3
+
+# Random UUID-named images (temp screenshots)
+[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*.png
+[0-9a-f]*.png
+
+# Unity project (large, many files)
+ShiZhe_CaoYang/

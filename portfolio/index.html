@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>虞阅洲 · AI 应用工程师</title>
+<meta name="description" content="虞阅洲 — AI 应用工程师作品集。工程检测行业 7 年经验,用 AI 协作开发交付覆盖 300+ 用户的内部业务系统。" />
+<meta name="theme-color" content="#0b0b10" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['-apple-system','BlinkMacSystemFont','"Helvetica Neue"','"PingFang SC"','"Microsoft YaHei"','sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #0b0b10; color: #e5e7eb; }
+  .accent-gradient {
+    background: linear-gradient(135deg,#ef4444 0%, #f97316 50%, #facc15 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .card-glow:hover { box-shadow: 0 0 32px -8px rgba(239,68,68,.25); }
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.is-visible { opacity: 1; transform: none; }
+  .chip { display:inline-block; padding:2px 10px; border-radius:9999px; font-size:11px; line-height:1.6; background:rgba(244,114,182,.08); color:#fda4af; border:1px solid rgba(244,114,182,.15); }
+  .chip-blue { background:rgba(59,130,246,.08); color:#93c5fd; border-color:rgba(59,130,246,.15); }
+  .chip-green { background:rgba(34,197,94,.08); color:#86efac; border-color:rgba(34,197,94,.15); }
+  .chip-violet { background:rgba(168,85,247,.08); color:#d8b4fe; border-color:rgba(168,85,247,.15); }
+  .chip-amber { background:rgba(245,158,11,.08); color:#fcd34d; border-color:rgba(245,158,11,.15); }
+  ::selection { background: #ef4444; color: white; }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<!-- 顶部导航 -->
+<header class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/30 border-b border-white/5">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center">
+    <a href="#hero" class="font-semibold tracking-wide">虞阅洲<span class="text-slate-500 text-sm font-normal ml-2">/ AI 应用工程师</span></a>
+    <nav class="ml-auto hidden sm:flex items-center gap-6 text-sm text-slate-300">
+      <a href="#about" class="hover:text-white">关于</a>
+      <a href="#projects" class="hover:text-white">项目</a>
+      <a href="#skills" class="hover:text-white">技能</a>
+      <a href="#contact" class="hover:text-white">联系</a>
+      <a href="https://github.com/yudapao0806" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section id="hero" class="min-h-screen flex items-center px-4 sm:px-6 pt-24 pb-16">
+  <div class="max-w-5xl mx-auto w-full">
+    <p class="reveal text-sm text-slate-400 tracking-widest mb-4">AI APPLICATION ENGINEER · 上海</p>
+    <h1 class="reveal text-5xl sm:text-7xl font-bold leading-tight mb-6">
+      你好,我是 <span class="accent-gradient">虞阅洲</span>。
+    </h1>
+    <p class="reveal text-lg sm:text-2xl text-slate-300 leading-relaxed max-w-3xl mb-10">
+      工程检测行业 <b class="text-white">7 年</b>综合管理经验。
+      擅长用 Claude Code、Codex、Gemini 等 AI 协作编程,把行业痛点变成可被业务直接使用的工具。
+      已交付覆盖 <b class="text-white">300+ 内部用户</b>的 5+ 套自研系统。
+    </p>
+    <div class="reveal flex flex-wrap gap-3">
+      <a href="#projects" class="px-5 py-3 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 font-semibold hover:opacity-90 transition">查看项目 →</a>
+      <a href="https://github.com/yudapao0806" target="_blank" rel="noopener" class="px-5 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 font-medium">GitHub</a>
+      <a href="mailto:yuyuezhou1@gmail.com" class="px-5 py-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 font-medium">邮件联系</a>
+    </div>
+
+    <div class="reveal mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl text-sm">
+      <div>
+        <div class="text-3xl font-bold accent-gradient">7</div>
+        <div class="text-slate-400 mt-1">年行业经验</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold accent-gradient">18+</div>
+        <div class="text-slate-400 mt-1">RPA 自动化脚本</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold accent-gradient">300+</div>
+        <div class="text-slate-400 mt-1">系统覆盖用户</div>
+      </div>
+      <div>
+        <div class="text-3xl font-bold accent-gradient">~12h</div>
+        <div class="text-slate-400 mt-1">月度节省工时</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="px-4 sm:px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="reveal text-sm tracking-widest text-slate-400 mb-3">ABOUT</h2>
+    <p class="reveal text-2xl sm:text-3xl font-semibold leading-snug mb-10 max-w-3xl">
+      把"懂业务"和"会用 AI"接在一起,让一个人完成原本一个团队的工作。
+    </p>
+    <div class="reveal grid sm:grid-cols-2 gap-8 text-slate-300 leading-relaxed text-base">
+      <p>
+        2019 年从上海民航职业技术学院飞行器制造毕业,在普惠飞机发动机做了 2 年涡轮维修;2021 年起在上海中测行工程检测做综合管理,2026 年同济大学工程造价管理本科毕业。
+      </p>
+      <p>
+        管理岗每天接触合同、设备、车辆、档案的真实痛点,几年下来用 Claude Code、Codex 这类 AI 协作工具,把它们一个个变成了自动化系统。比起"为了用 AI 而用 AI",我更习惯从业务出发,选最直接的方案落地。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" class="px-4 sm:px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="reveal text-sm tracking-widest text-slate-400 mb-3">PROJECTS</h2>
+    <p class="reveal text-2xl sm:text-3xl font-semibold mb-12">五个有代表性的项目</p>
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <!-- Project 0: BPM RPA(放第一,最贴合 AI 应用工程师卖点) -->
+      <article class="reveal card-glow md:col-span-2 bg-gradient-to-br from-white/[0.04] to-white/[0.02] border border-white/10 rounded-2xl p-6 sm:p-8 transition">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs text-slate-500">★ 重点项目 · RPA / Selenium / 数据驱动</span>
+          <span class="text-xs text-slate-500">2024 - 至今</span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-semibold mb-3">BPM 内部系统 RPA 自动化套件</h3>
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">
+          针对公司 BPM / CRM 系统设计的桌面级自动化套件,把综合管理岗每月最高频的十几个流程(工作量汇报、商机登记、成员添加、项目延期、PDF 命名等)做成 <b class="text-white">Excel 驱动的 Selenium 脚本</b>。
+          每月节省 <b class="text-white">~10-15 小时</b>手工操作,准确率 &gt; 99%。
+        </p>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          其中 <code class="bg-white/5 px-1.5 py-0.5 rounded text-xs">bpm_reporter_fixed.py</code> 为工程化标杆:Page Object 模式封装页面,装饰器实现重试 / 日志,dataclass 集中配置,显式等待替代 sleep。整个套件覆盖 <b class="text-white">18 个脚本 / ~3600 行</b>。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="chip">Python 3.10+</span>
+          <span class="chip chip-amber">Selenium 4</span>
+          <span class="chip">openpyxl</span>
+          <span class="chip">pandas</span>
+          <span class="chip chip-amber">PaddleOCR / Tesseract</span>
+          <span class="chip">PyPDF2</span>
+          <span class="chip chip-green">Page Object</span>
+        </div>
+      </article>
+
+      <!-- Project 1: IDI -->
+      <article class="reveal card-glow bg-white/[0.03] border border-white/10 rounded-2xl p-6 transition">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs text-slate-500">01 · 文档结构化 + 移动端 Web</span>
+          <span class="text-xs text-slate-500">2026 · 进行中</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-semibold mb-2">IDI 缺陷速查 Web App</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          800+ 页《IDI 质量险潜在缺陷清单》docx 自动提取为 <b class="text-slate-200">599 条结构化数据</b>(JSON + Excel),配套手机优先的纯静态 Web App。
+          支持多关键词 AND 检索、风险期限/工程大类筛选、关键词高亮、一键复制问题与处理建议。供现场实勘工程师手机扫码即用。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="chip">python-docx</span>
+          <span class="chip">openpyxl</span>
+          <span class="chip chip-blue">Tailwind</span>
+          <span class="chip chip-blue">原生 JS</span>
+          <span class="chip chip-green">手机优先</span>
+        </div>
+      </article>
+
+      <!-- Project 2: 合同填充 -->
+      <article class="reveal card-glow bg-white/[0.03] border border-white/10 rounded-2xl p-6 transition">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs text-slate-500">02 · OCR + Word 自动化 + PDF 盖章</span>
+          <span class="text-xs text-slate-500">2024 - 至今</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-semibold mb-2">建设工程检测合同自动填充工具</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          网页截图 → OCR 识别 12 个字段 → 自动填入 Word 合同模板(保留下划线与原排版)→ PDF 后处理:放大乙方公章 + 生成竖向骑缝章。
+          单份合同处理由 ~15 分钟降至 <b class="text-slate-200">&lt; 30 秒</b>,准确率 &gt; 95%。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="chip">Python</span>
+          <span class="chip chip-amber">PaddleOCR</span>
+          <span class="chip">python-docx</span>
+          <span class="chip">win32com</span>
+          <span class="chip chip-violet">PyMuPDF</span>
+        </div>
+      </article>
+
+      <!-- Project 3: 补贴申报 -->
+      <article class="reveal card-glow bg-white/[0.03] border border-white/10 rounded-2xl p-6 transition">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs text-slate-500">03 · 全栈业务系统 + 内网部署</span>
+          <span class="text-xs text-slate-500">2026.04</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-semibold mb-2">补贴申报管理系统</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          客户 / 项目 / 费用 / 报表 四个模块的完整 B 端业务系统,内置基于规则的政策匹配引擎,自动判定补贴申报资格。
+          PyInstaller 打包成单文件 .exe 一键部署,配合 cpolar 内网穿透给申报专员异地访问。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="chip chip-green">FastAPI</span>
+          <span class="chip">SQLAlchemy</span>
+          <span class="chip">JWT</span>
+          <span class="chip chip-violet">PyInstaller</span>
+          <span class="chip chip-amber">cpolar</span>
+        </div>
+      </article>
+
+      <!-- Project 4: 文生图 -->
+      <article class="reveal card-glow bg-white/[0.03] border border-white/10 rounded-2xl p-6 transition">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs text-slate-500">04 · AI 图像工作流</span>
+          <span class="text-xs text-slate-500">2026 · 持续</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-semibold mb-2">AI 文生图工作流与本地部署</h3>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          本地部署 React 19 + Vite 6 + Tailwind + @fal-ai/client 的文生图 Playground,
+          配合 ComfyUI + PuLID 工作流处理人脸保留场景,产出内容创作素材。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="chip chip-blue">React 19</span>
+          <span class="chip chip-blue">Vite 6</span>
+          <span class="chip chip-blue">Tailwind</span>
+          <span class="chip chip-violet">fal.ai</span>
+          <span class="chip chip-violet">ComfyUI</span>
+          <span class="chip chip-violet">PuLID</span>
+        </div>
+      </article>
+
+    </div>
+
+    <p class="reveal text-sm text-slate-500 mt-8">
+      更多项目(车辆管理 / 档案管理 / ERP 前端 / 合同流转 等)按需提供源码或截图,部分为公司内部系统不公开仓库。
+    </p>
+  </div>
+</section>
+
+<!-- Skills -->
+<section id="skills" class="px-4 sm:px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="reveal text-sm tracking-widest text-slate-400 mb-3">SKILLS</h2>
+    <p class="reveal text-2xl sm:text-3xl font-semibold mb-12">技术栈</p>
+
+    <div class="grid sm:grid-cols-2 gap-x-12 gap-y-8">
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">编程语言</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip">Python</span><span class="chip">TypeScript</span><span class="chip">JavaScript</span><span class="chip">SQL</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">后端 / 框架</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-green">FastAPI</span><span class="chip chip-green">SQLAlchemy</span><span class="chip">Node.js</span><span class="chip">Jinja2</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">前端 / UI</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-blue">React 19</span><span class="chip chip-blue">Vue 3</span><span class="chip chip-blue">Next.js</span><span class="chip chip-blue">Tailwind</span><span class="chip chip-blue">Element Plus</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">数据库</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip">SQLite</span><span class="chip">PostgreSQL</span><span class="chip">Supabase</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">AI 协作编程</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-violet">Claude Code</span><span class="chip chip-violet">Codex</span><span class="chip chip-violet">Gemini</span><span class="chip chip-violet">ChatGPT</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">AI 图像 / 视频</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-violet">ComfyUI</span><span class="chip chip-violet">Stable Diffusion</span><span class="chip chip-violet">PuLID</span><span class="chip chip-violet">fal.ai</span><span class="chip chip-amber">Premiere / AE</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">文档自动化</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-amber">PaddleOCR</span><span class="chip">python-docx</span><span class="chip">openpyxl</span><span class="chip">PyMuPDF</span><span class="chip">win32com</span></div>
+      </div>
+      <div class="reveal">
+        <h4 class="text-white font-medium mb-3">部署 / 工具</h4>
+        <div class="flex flex-wrap gap-1.5"><span class="chip chip-amber">Vercel</span><span class="chip chip-amber">PyInstaller</span><span class="chip chip-amber">cpolar</span><span class="chip">uvicorn</span><span class="chip">Git</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Education & Experience timeline -->
+<section id="timeline" class="px-4 sm:px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="reveal text-sm tracking-widest text-slate-400 mb-3">TIMELINE</h2>
+    <p class="reveal text-2xl sm:text-3xl font-semibold mb-12">教育与工作</p>
+    <ol class="border-l border-white/10 space-y-10 pl-6">
+      <li class="reveal relative">
+        <span class="absolute -left-[33px] top-1.5 w-3 h-3 rounded-full bg-gradient-to-br from-red-500 to-orange-500"></span>
+        <div class="text-xs text-slate-500">2023 - 2026 · 教育</div>
+        <div class="font-semibold text-lg mt-1">同济大学 · 本科(已毕业)</div>
+        <div class="text-slate-400 text-sm">工程造价管理</div>
+      </li>
+      <li class="reveal relative">
+        <span class="absolute -left-[33px] top-1.5 w-3 h-3 rounded-full bg-white/40"></span>
+        <div class="text-xs text-slate-500">2021.07 - 至今 · 工作</div>
+        <div class="font-semibold text-lg mt-1">上海中测行工程检测咨询有限公司 · 综合管理员</div>
+        <div class="text-slate-400 text-sm">合同、设备、车辆、档案管理;主导 5+ 套内部系统自研开发,覆盖 300+ 用户。</div>
+      </li>
+      <li class="reveal relative">
+        <span class="absolute -left-[33px] top-1.5 w-3 h-3 rounded-full bg-white/40"></span>
+        <div class="text-xs text-slate-500">2019.07 - 2021.06 · 工作</div>
+        <div class="font-semibold text-lg mt-1">上海普惠飞机发动机维修有限公司 · 项目专员/助理</div>
+        <div class="text-slate-400 text-sm">飞机发动机涡轮维修喷涂工艺执行,化学品台账与流程管理。</div>
+      </li>
+      <li class="reveal relative">
+        <span class="absolute -left-[33px] top-1.5 w-3 h-3 rounded-full bg-white/40"></span>
+        <div class="text-xs text-slate-500">2017 - 2020 · 教育</div>
+        <div class="font-semibold text-lg mt-1">上海民航职业技术学院 · 大专</div>
+        <div class="text-slate-400 text-sm">飞行器制造技术</div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="px-4 sm:px-6 py-24 border-t border-white/5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="reveal text-sm tracking-widest text-slate-400 mb-3">CONTACT</h2>
+    <p class="reveal text-3xl sm:text-5xl font-bold leading-tight mb-10 max-w-3xl">
+      在找一个能让 AI 真正服务业务的团队。
+    </p>
+    <div class="reveal grid sm:grid-cols-3 gap-4">
+      <a href="mailto:yuyuezhou1@gmail.com" class="block p-5 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition">
+        <div class="text-xs text-slate-500 mb-1">邮箱</div>
+        <div class="font-mono text-sm">yuyuezhou1@gmail.com</div>
+      </a>
+      <a href="https://github.com/yudapao0806" target="_blank" rel="noopener" class="block p-5 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition">
+        <div class="text-xs text-slate-500 mb-1">GitHub</div>
+        <div class="font-mono text-sm">github.com/yudapao0806</div>
+      </a>
+      <div class="block p-5 rounded-xl bg-white/[0.03] border border-white/10">
+        <div class="text-xs text-slate-500 mb-1">所在地</div>
+        <div class="text-sm">上海</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="px-4 sm:px-6 py-10 border-t border-white/5 text-center text-xs text-slate-500">
+  © 2026 虞阅洲 · Built with Claude Code · 部署于 Vercel
+</footer>
+
+<script>
+  // 滚动进入视图动画
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

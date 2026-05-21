@@ -1,0 +1,51 @@
+{
+  "name": "pdf-cad-tools",
+  "description": "CAD转PDF、PDF拆分/合并/批量重命名/压缩/报告工具集",
+  "version": "1.1.0",
+  "commands": [
+    {
+      "name": "cad2pdf",
+      "description": "将CAD文件(.dxf)转换为PDF",
+      "usage": "dxf2pdf.bat <input.dxf>",
+      "script": "cad_to_pdf.py"
+    },
+    {
+      "name": "pdf-split",
+      "description": "按页拆分PDF",
+      "usage": "pdf-split.bat <input.pdf>",
+      "script": "pdf_tools.py"
+    },
+    {
+      "name": "pdf-merge",
+      "description": "合并多个PDF文件，可选生成报告",
+      "usage": "pdf-merge.bat <pdf1.pdf pdf2.pdf ...>",
+      "script": "pdf_tools.py"
+    },
+    {
+      "name": "pdf-rename",
+      "description": "批量重命名PDF文件（支持正则）",
+      "usage": "pdf-rename.bat",
+      "script": "pdf_tools.py"
+    },
+    {
+      "name": "pdf-compress",
+      "description": "压缩PDF文件",
+      "usage": "pdf-compress.bat <input.pdf>",
+      "script": "pdf_tools.py"
+    },
+    {
+      "name": "pdf-extract",
+      "description": "提取PDF指定页码",
+      "usage": "pdf-extract.bat <input.pdf>",
+      "script": "pdf_tools.py"
+    }
+  ],
+  "requirements": [
+    "ezdxf>=1.1.0",
+    "pikepdf>=8.0.0",
+    "matplotlib>=3.7.0",
+    "openpyxl>=3.0.0",
+    "Pillow>=9.0.0"
+  ],
+  "author": "custom"
+}

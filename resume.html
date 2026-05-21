@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>虞阅洲 · AI 应用工程师 · 简历</title>
+<style>
+  @page {
+    size: A4;
+    margin: 14mm 14mm 14mm 14mm;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC",
+                 "Microsoft YaHei", "Segoe UI", "Hiragino Sans GB", sans-serif;
+    color: #1a1a1a;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    background: #fff;
+  }
+  /* 顶部姓名条 */
+  .header {
+    border-bottom: 2.5pt solid #a8324a;
+    padding-bottom: 6pt;
+    margin-bottom: 10pt;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .name {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #a8324a;
+    letter-spacing: 1pt;
+  }
+  .target {
+    font-size: 10.5pt;
+    color: #555;
+    font-weight: 500;
+  }
+  .target b { color: #a8324a; }
+  .meta {
+    font-size: 9pt;
+    color: #555;
+    margin-top: 4pt;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6pt 14pt;
+  }
+  .meta span { white-space: nowrap; }
+  .meta a { color: #a8324a; text-decoration: none; }
+  /* 段落标题 */
+  h2 {
+    font-size: 11.5pt;
+    color: #a8324a;
+    font-weight: 700;
+    border-left: 3pt solid #a8324a;
+    padding-left: 7pt;
+    margin: 11pt 0 5pt;
+    letter-spacing: 0.5pt;
+  }
+  /* 工作 / 教育 / 项目 item */
+  .item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 4pt;
+  }
+  .item-title {
+    font-weight: 700;
+    font-size: 10.8pt;
+    color: #222;
+  }
+  .item-sub {
+    color: #666;
+    font-size: 9.8pt;
+  }
+  .item-meta {
+    font-size: 9pt;
+    color: #888;
+    white-space: nowrap;
+  }
+  ul {
+    margin: 2pt 0 0 14pt;
+    padding: 0;
+  }
+  li {
+    margin-bottom: 1.5pt;
+    font-size: 9.8pt;
+    line-height: 1.5;
+  }
+  li b { color: #111; }
+  .star { color: #a8324a; font-weight: 700; }
+
+  /* 优势 / 技能行 */
+  .pill-row { margin-top: 2pt; }
+  .pill {
+    display: inline-block;
+    padding: 1pt 7pt;
+    border-radius: 9pt;
+    font-size: 8.5pt;
+    border: 0.6pt solid #a8324a30;
+    color: #a8324a;
+    background: #a8324a08;
+    margin-right: 3pt;
+    margin-bottom: 3pt;
+    white-space: nowrap;
+  }
+  .pill-gray {
+    border-color: #ccc;
+    color: #555;
+    background: #f5f5f5;
+  }
+
+  /* 项目用更紧凑布局 */
+  .proj { margin-top: 5pt; }
+  .proj-name { font-weight: 700; color: #222; font-size: 10.5pt; }
+  .proj-desc { font-size: 9.8pt; color: #333; margin-top: 1pt; }
+  .proj-stack { font-size: 8.8pt; color: #666; margin-top: 2pt; }
+  .proj-stack b { color: #a8324a; font-weight: 600; }
+
+  /* 防止跨页 */
+  h2 { page-break-after: avoid; }
+  .proj, .item-head { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="header">
+  <div>
+    <div class="name">虞阅洲</div>
+    <div class="meta" style="margin-top:5pt;">
+      <span>男 · 27 岁</span>
+      <span>📧 yuyuezhou1@gmail.com</span>
+      <span>📍 上海</span>
+      <span>🔗 <a href="https://github.com/yudapao0806">github.com/yudapao0806</a></span>
+    </div>
+  </div>
+  <div class="target">
+    求职意向 <b>AI 应用工程师</b><br>
+    <span style="color:#888;font-size:9pt;">7 年工程行业经验 · 上海</span>
+  </div>
+</div>
+
+<!-- 个人优势 -->
+<h2>个人优势</h2>
+<ul>
+  <li><b>AI 编程实战</b>:熟练使用 Claude Code、Codex、Gemini 等 AI 协作开发,7 年期间独立或主导交付 5+ 套公司内部业务系统(合同自动填充、补贴申报、车辆/设备管理、IDI 缺陷速查、BPM RPA 套件等),覆盖 <b>300+ 内部用户</b>,平均开发周期从月级压缩到周级。</li>
+  <li><b>AI 工作流落地</b>:精通文档自动化(PaddleOCR、python-docx、PDF 处理、骑缝章算法)、文生图集成(fal.ai、ComfyUI + PuLID)、内网部署(cpolar、uvicorn、PyInstaller 打包),能把 AI 能力打包为业务可直接使用的工具。</li>
+  <li><b>业务理解力</b>:工程检测行业 7 年综合管理背景,熟悉合同 / 设备 / 项目 / 档案全流程,能识别业务痛点并用 AI 方案高效解决,而非"为技术而技术"。</li>
+</ul>
+
+<!-- 工作经历 -->
+<h2>工作经历</h2>
+
+<div class="item-head">
+  <div>
+    <span class="item-title">上海中测行工程检测咨询有限公司</span>
+    <span class="item-sub">· 综合管理员</span>
+  </div>
+  <div class="item-meta">2021.07 - 至今</div>
+</div>
+<ul>
+  <li><b>BPM / CRM 系统 RPA 自动化套件</b>(Python + Selenium 4 + openpyxl,18 脚本 / ~3600 行)<span class="star"> ★</span>:覆盖工作量汇报、商机登记、项目成员添加、项目延期、PDF 报告自动命名等 BPM 高频流程,Excel 数据驱动 Selenium 自动操作。核心模块用 Page Object 模式封装、装饰器实现重试与日志,准确率 &gt; 99%,<b>每月节省约 10-15 小时手工操作</b>。</li>
+  <li><b>合同自动填充工具</b>(PaddleOCR + python-docx + win32com):网页截图 → OCR 识别 12 个字段 → 自动填入 Word 合同模板(保留下划线与原排版)→ PDF 后处理(放大乙方公章 + 生成竖向骑缝章)。单份合同 ~15 分钟降至 <b>&lt; 30 秒</b>,准确率 &gt; 95%。</li>
+  <li><b>IDI 质量险缺陷速查工具</b>(Python + 原生 Web,移动端优先):解析 800+ 页缺陷清单 docx 为 599 条 JSON 数据;手机端速查 Web App 支持多关键词 AND、风险期限/工程大类筛选、关键词高亮、一键复制问题与处理建议。</li>
+  <li><b>补贴申报管理系统</b>(FastAPI + SQLAlchemy + 原生前端):客户 / 项目 / 费用 / 报表 四模块完整业务系统,内置规则引擎自动判定补贴资格;PyInstaller 单文件打包,cpolar 内网穿透异地访问。</li>
+  <li><b>车辆 / 档案管理 / ERP 前端</b>(Vue 3 + Element Plus / FastAPI):覆盖车辆调度、维修记录、合同流转、档案归集;同时承担合同管理、设备管理、项目对接、跨部门协调等综合管理职责。</li>
+</ul>
+
+<div class="item-head">
+  <div>
+    <span class="item-title">上海普惠飞机发动机维修有限公司</span>
+    <span class="item-sub">· 项目专员 / 助理</span>
+  </div>
+  <div class="item-meta">2019.07 - 2021.06</div>
+</div>
+<ul>
+  <li>飞机发动机涡轮维修喷涂工艺执行,化学品台账与流程管理。</li>
+</ul>
+
+<!-- 项目作品 -->
+<h2>项目作品</h2>
+
+<div class="proj">
+  <div class="item-head">
+    <div class="proj-name">① BPM 内部系统 RPA 自动化套件 <span class="star">★</span></div>
+    <div class="item-meta">2024 - 至今 · 18 脚本 / 3600 行</div>
+  </div>
+  <div class="proj-desc">用 Selenium 将公司 BPM/CRM 月度高频流程做成 Excel 驱动自动化套件,覆盖 18+ 业务流程;<code>bpm_reporter_fixed.py</code> 以 Page Object 模式重构,带重试装饰器、日志系统、dataclass 配置,可作为团队 RPA 模板。</div>
+  <div class="proj-stack"><b>技术栈:</b> Python 3.10 · Selenium 4 · openpyxl · PyPDF2 · Tesseract OCR · Page Object</div>
+</div>
+
+<div class="proj">
+  <div class="item-head">
+    <div class="proj-name">② IDI 缺陷速查 Web App</div>
+    <div class="item-meta">2026 · 移动优先</div>
+  </div>
+  <div class="proj-desc">从 800+ 页 docx 自动提取 599 条结构化数据(JSON+Excel),配套手机优先的纯静态 Web App,关键词命中高亮、一键复制问题与建议,iOS Safari 兼容、HTTP 内网环境用 fallback 复制。</div>
+  <div class="proj-stack"><b>技术栈:</b> Python (python-docx, openpyxl) · 原生 JS · Tailwind CDN</div>
+</div>
+
+<div class="proj">
+  <div class="item-head">
+    <div class="proj-name">③ 合同自动填充与电子盖章工具集</div>
+    <div class="item-meta">2024 - 至今</div>
+  </div>
+  <div class="proj-desc">"网页截图 → OCR → Word 填表 → PDF 盖章"端到端自动化。骑缝章算法基于"所有页同一 x 位置切片"复原真实纸面对齐效果;月均处理 ~50 份合同,准确率 &gt; 95%。</div>
+  <div class="proj-stack"><b>技术栈:</b> PaddleOCR · python-docx · win32com · PyMuPDF</div>
+</div>
+
+<div class="proj">
+  <div class="item-head">
+    <div class="proj-name">④ 补贴申报管理系统(B 端业务)</div>
+    <div class="item-meta">2026.04</div>
+  </div>
+  <div class="proj-desc">基于规则引擎的小型 B 端业务系统,客户/项目/费用/报表四模块;PyInstaller 打包单文件 .exe 一键部署,cpolar 内网穿透。</div>
+  <div class="proj-stack"><b>技术栈:</b> FastAPI · SQLAlchemy · JWT · PyInstaller · cpolar</div>
+</div>
+
+<div class="proj">
+  <div class="item-head">
+    <div class="proj-name">⑤ AI 文生图工作流集成</div>
+    <div class="item-meta">2026 · 持续</div>
+  </div>
+  <div class="proj-desc">本地部署 React + Vite + fal.ai 客户端的文生图 playground;配合 ComfyUI + PuLID 工作流处理人脸保留场景,服务内容创作。</div>
+  <div class="proj-stack"><b>技术栈:</b> React 19 · Vite 6 · Tailwind · @fal-ai/client · ComfyUI · PuLID</div>
+</div>
+
+<!-- 技能 -->
+<h2>技术栈</h2>
+<div class="pill-row">
+  <span class="pill">Python</span><span class="pill">TypeScript</span><span class="pill">JavaScript</span><span class="pill">SQL</span>
+  <span class="pill">FastAPI</span><span class="pill">SQLAlchemy</span><span class="pill">Node.js</span>
+  <span class="pill">React 19</span><span class="pill">Vue 3</span><span class="pill">Next.js</span><span class="pill">Tailwind</span><span class="pill">Element Plus</span>
+  <span class="pill">SQLite</span><span class="pill">PostgreSQL / Supabase</span>
+  <span class="pill">Selenium 4</span><span class="pill">PaddleOCR</span><span class="pill">python-docx</span><span class="pill">PyMuPDF</span><span class="pill">openpyxl</span>
+  <span class="pill">Claude Code</span><span class="pill">Codex</span><span class="pill">Gemini</span>
+  <span class="pill">ComfyUI</span><span class="pill">Stable Diffusion</span><span class="pill">PuLID</span><span class="pill">fal.ai</span>
+  <span class="pill">Vercel</span><span class="pill">PyInstaller</span><span class="pill">cpolar</span><span class="pill">uvicorn</span><span class="pill">Git</span>
+</div>
+
+<!-- 教育 -->
+<h2>教育经历</h2>
+<div class="item-head">
+  <div>
+    <span class="item-title">同济大学</span>
+    <span class="item-sub">· 本科(已毕业)· 工程造价管理</span>
+  </div>
+  <div class="item-meta">2023 - 2026</div>
+</div>
+<div class="item-head">
+  <div>
+    <span class="item-title">上海民航职业技术学院</span>
+    <span class="item-sub">· 大专 · 飞行器制造技术</span>
+  </div>
+  <div class="item-meta">2017 - 2020</div>
+</div>
+
+</body>
+</html>

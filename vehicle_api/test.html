@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>测试</title>
+    <script src="/static/js/vue.global.js"></script>
+    <link rel="stylesheet" href="/static/css/element-plus.css">
+    <script src="/static/js/element-plus.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>{{ message }}</h1>
+        <el-button type="primary">测试按钮</el-button>
+    </div>
+    <script>
+        const { createApp } = Vue;
+        const app = createApp({
+            data() {
+                return { message: 'Vue 工作正常!' }
+            }
+        });
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

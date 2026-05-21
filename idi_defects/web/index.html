@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#1F4E78" />
+<title>IDI 缺陷速查</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html, body { -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .hl { background:#fde68a; color:#7c2d12; padding:0 1px; border-radius:2px; }
+  /* iOS 安全区 */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  /* 滚动隐藏类别条滚动条 */
+  .scroll-x::-webkit-scrollbar { display: none; }
+  .scroll-x { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+<!-- 顶栏 -->
+<header class="sticky top-0 z-30 bg-[#1F4E78] text-white shadow-md pt-safe">
+  <div class="px-3 pt-2 pb-2">
+    <div class="flex items-center gap-2 mb-2">
+      <h1 class="text-base font-semibold flex-1">IDI 缺陷速查</h1>
+      <span id="count" class="text-xs opacity-80">加载中…</span>
+    </div>
+    <div class="relative">
+      <input id="q" type="search" enterkeyhint="search" autocomplete="off"
+             placeholder="搜索关键词,空格分隔多词 AND"
+             class="w-full rounded-lg bg-white/95 text-slate-900 placeholder-slate-400 px-3 py-2 text-base outline-none ring-0 focus:bg-white" />
+      <button id="clear" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 active:text-slate-700 text-lg w-7 h-7 flex items-center justify-center">×</button>
+    </div>
+  </div>
+  <!-- 类别快捷筛选 -->
+  <div id="cat-bar" class="scroll-x overflow-x-auto whitespace-nowrap px-2 pb-2 -mt-1">
+    <!-- chip buttons inject here -->
+  </div>
+</header>
+
+<!-- 工具栏(选中态) -->
+<div id="filterhint" class="hidden px-3 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-800 flex items-center justify-between">
+  <span id="filterhint-text"></span>
+  <button id="resetfilter" class="underline">清除筛选</button>
+</div>
+
+<!-- 结果区 -->
+<main id="list" class="px-2 py-2 space-y-2 pb-24"></main>
+
+<!-- 空态 -->
+<div id="empty" class="hidden text-center text-slate-400 pt-12 pb-24">
+  <div class="text-4xl">🔎</div>
+  <div class="mt-2 text-sm">没有匹配的缺陷条目,试试换个关键词</div>
+</div>
+
+<!-- toast -->
+<div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-sm px-4 py-2 rounded-full opacity-0 transition-opacity duration-200 pointer-events-none z-50"></div>
+
+<!-- 底部状态 -->
+<footer class="fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur border-t border-slate-200 text-[11px] text-slate-500 px-3 py-2 pb-safe flex justify-between">
+  <span>共 599 条 · 数据来源:IDI 质量险潜在缺陷清单合集 2025.03.22</span>
+  <button id="top" class="text-[#1F4E78] font-medium">回顶</button>
+</footer>
+
+<template id="card-tpl">
+  <article class="bg-white rounded-xl shadow-sm border border-slate-100 p-3">
+    <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+      <span data-f="period" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-50 text-rose-700"></span>
+      <span data-f="major"  class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-50 text-blue-700"></span>
+      <span data-f="minor"  class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600"></span>
+      <span data-f="id"     class="text-[10px] ml-auto text-slate-400"></span>
+    </div>
+    <div class="text-[15px] font-semibold leading-snug" data-f="problem"></div>
+    <div class="mt-2 text-[13px] text-slate-600 leading-relaxed" data-f="standard"></div>
+    <details class="mt-2 group">
+      <summary class="text-[13px] text-[#1F4E78] font-medium cursor-pointer select-none list-none">
+        <span class="inline-flex items-center gap-1">
+          <span class="group-open:rotate-90 transition-transform">▶</span>
+          纠正和预防建议
+        </span>
+      </summary>
+      <div class="mt-1.5 text-[13px] leading-relaxed text-slate-700" data-f="suggestion"></div>
+    </details>
+    <div class="mt-3 grid grid-cols-3 gap-1.5">
+      <button data-copy="problem"    class="text-xs py-2 rounded-md bg-slate-100 active:bg-slate-200">复制问题</button>
+      <button data-copy="suggestion" class="text-xs py-2 rounded-md bg-slate-100 active:bg-slate-200">复制建议</button>
+      <button data-copy="all"        class="text-xs py-2 rounded-md bg-[#1F4E78] text-white active:opacity-80">复制全部</button>
+    </div>
+  </article>
+</template>
+
+<script>
+(() => {
+  const $ = (s, p=document) => p.querySelector(s);
+  const $$ = (s, p=document) => Array.from(p.querySelectorAll(s));
+
+  const state = {
+    data: [],
+    filtered: [],
+    q: "",
+    period: null,   // 选中的风险期限
+    major: null,    // 选中的大类
+    pageSize: 50,
+    page: 1,
+  };
+
+  // ----------- 加载数据 -----------
+  fetch("defects.json", { cache: "no-cache" })
+    .then(r => r.json())
+    .then(data => {
+      state.data = data;
+      $("#count").textContent = `共 ${data.length} 条`;
+      buildCategoryBar();
+      render();
+    })
+    .catch(err => {
+      $("#count").textContent = "加载失败";
+      $("#list").innerHTML = `<div class="p-4 bg-white rounded-lg text-rose-600 text-sm">无法加载 defects.json: ${err.message}</div>`;
+    });
+
+  // ----------- 类别 chip 条 -----------
+  function buildCategoryBar() {
+    const bar = $("#cat-bar");
+    bar.innerHTML = "";
+    // 风险期限
+    const periods = uniq(state.data.map(d => d.category_period));
+    periods.forEach(p => {
+      const btn = chip(p, "period");
+      bar.appendChild(btn);
+    });
+    // 分隔
+    const sep = document.createElement("span");
+    sep.className = "inline-block w-px h-4 bg-white/30 mx-1 align-middle";
+    bar.appendChild(sep);
+    // 大类
+    const majors = uniq(state.data.map(d => d.category_major));
+    majors.forEach(m => {
+      const btn = chip(m, "major");
+      bar.appendChild(btn);
+    });
+  }
+  function chip(label, kind) {
+    const b = document.createElement("button");
+    b.className = "inline-block text-xs px-2.5 py-1 rounded-full bg-white/15 text-white mr-1.5 active:bg-white/30";
+    b.textContent = label;
+    b.dataset.kind = kind;
+    b.dataset.value = label;
+    b.addEventListener("click", () => {
+      if (state[kind] === label) state[kind] = null;
+      else state[kind] = label;
+      updateChipStyle();
+      state.page = 1;
+      render();
+    });
+    return b;
+  }
+  function updateChipStyle() {
+    $$("#cat-bar button").forEach(b => {
+      const kind = b.dataset.kind, val = b.dataset.value;
+      if (state[kind] === val) {
+        b.className = "inline-block text-xs px-2.5 py-1 rounded-full bg-amber-300 text-amber-900 font-medium mr-1.5";
+      } else {
+        b.className = "inline-block text-xs px-2.5 py-1 rounded-full bg-white/15 text-white mr-1.5 active:bg-white/30";
+      }
+    });
+    // 顶部筛选提示条
+    const parts = [];
+    if (state.period) parts.push(`期限:${state.period}`);
+    if (state.major) parts.push(`大类:${state.major}`);
+    if (parts.length) {
+      $("#filterhint").classList.remove("hidden");
+      $("#filterhint-text").textContent = "已筛选 " + parts.join(" / ");
+    } else {
+      $("#filterhint").classList.add("hidden");
+    }
+  }
+
+  // ----------- 搜索 -----------
+  let qTimer;
+  $("#q").addEventListener("input", e => {
+    state.q = e.target.value.trim();
+    $("#clear").classList.toggle("hidden", !state.q);
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { state.page = 1; render(); }, 120);
+  });
+  $("#clear").addEventListener("click", () => {
+    $("#q").value = "";
+    state.q = "";
+    $("#clear").classList.add("hidden");
+    state.page = 1;
+    render();
+  });
+  $("#resetfilter").addEventListener("click", () => {
+    state.period = null; state.major = null;
+    updateChipStyle();
+    state.page = 1; render();
+  });
+  $("#top").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+  // ----------- 渲染 -----------
+  function render() {
+    const tokens = state.q ? state.q.split(/\s+/).filter(Boolean) : [];
+    const out = state.data.filter(d => {
+      if (state.period && d.category_period !== state.period) return false;
+      if (state.major && d.category_major !== state.major) return false;
+      if (!tokens.length) return true;
+      const hay = (d.problem + " " + d.standard + " " + d.suggestion + " " + d.category_minor).toLowerCase();
+      return tokens.every(t => hay.includes(t.toLowerCase()));
+    });
+    state.filtered = out;
+
+    const total = out.length;
+    const list = $("#list");
+    list.innerHTML = "";
+    $("#empty").classList.toggle("hidden", total > 0);
+
+    const slice = out.slice(0, state.page * state.pageSize);
+    const tpl = $("#card-tpl").content;
+
+    for (const d of slice) {
+      const node = tpl.cloneNode(true);
+      const card = node.querySelector("article");
+      setHL(card.querySelector('[data-f="period"]'), d.category_period, []);
+      setHL(card.querySelector('[data-f="major"]'),  d.category_major, []);
+      setHL(card.querySelector('[data-f="minor"]'),  d.category_minor, []);
+      card.querySelector('[data-f="id"]').textContent = d.global_id;
+      setHL(card.querySelector('[data-f="problem"]'),    d.problem || d.description, tokens);
+      setHL(card.querySelector('[data-f="standard"]'),   d.standard, tokens);
+      setHL(card.querySelector('[data-f="suggestion"]'), d.suggestion, tokens);
+
+      // 复制按钮
+      card.querySelectorAll("[data-copy]").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const kind = btn.dataset.copy;
+          let text = "";
+          if (kind === "problem")        text = d.problem || d.description;
+          else if (kind === "suggestion") text = d.suggestion;
+          else if (kind === "all") {
+            text = `【${d.category_period} · ${d.category_major}】\n` +
+                   `问题:${d.problem || d.description}\n` +
+                   (d.standard ? `依据:${d.standard}\n` : "") +
+                   `建议:${d.suggestion}`;
+          }
+          copy(text).then(ok => toast(ok ? `已复制 (${text.length} 字)` : "复制失败"));
+        });
+      });
+
+      list.appendChild(node);
+    }
+
+    // 标题计数 + 加载更多
+    $("#count").textContent = `${total} 条`;
+    if (slice.length < total) {
+      const more = document.createElement("button");
+      more.className = "w-full py-3 text-sm text-[#1F4E78] bg-white rounded-xl border border-slate-100";
+      more.textContent = `继续加载 (${total - slice.length} 条剩余)`;
+      more.addEventListener("click", () => { state.page++; render(); window.scrollTo(0, document.body.scrollHeight - 600); });
+      list.appendChild(more);
+    }
+  }
+
+  // ----------- 工具 -----------
+  function uniq(arr) {
+    const s = new Set();
+    return arr.filter(x => x && (s.has(x) ? false : (s.add(x), true)));
+  }
+  function escapeHTML(s) {
+    return (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function setHL(el, text, tokens) {
+    if (!text) { el.textContent = ""; return; }
+    if (!tokens.length) { el.textContent = text; return; }
+    // 在 escape 后的字符串上找原文索引
+    let html = escapeHTML(text);
+    // 不区分大小写,在原文层面替换;tokens 已 trim
+    tokens.forEach(t => {
+      if (!t) return;
+      const re = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+      html = html.replace(re, m => `<span class="hl">${m}</span>`);
+    });
+    el.innerHTML = html;
+  }
+  function toast(msg) {
+    const el = $("#toast");
+    el.textContent = msg;
+    el.style.opacity = "1";
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { el.style.opacity = "0"; }, 1400);
+  }
+  // Clipboard:HTTP 内网也要可用,做 fallback
+  async function copy(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) { /* fallthrough */ }
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+})();
+</script>
+</body>
+</html>

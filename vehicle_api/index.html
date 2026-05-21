@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车辆档案管理系统</title>
+    <!-- 本地资源优先，失败时回退到CDN -->
+    <script src="/static/js/vue.global.js" onerror="this.src='https://unpkg.com/vue@3/dist/vue.global.js'"></script>
+    <link rel="stylesheet" href="/static/css/element-plus.css" onerror="this.href='https://unpkg.com/element-plus/dist/index.css'">
+    <script src="/static/js/element-plus.js" onerror="this.src='https://unpkg.com/element-plus/dist/index.full.js'"></script>
+    <script src="/static/js/element-plus-icons.js" onerror="this.src='https://unpkg.com/@element-plus/icons-vue/dist/index.iife.min.js'"></script>
+    <script src="/static/js/axios.min.js" onerror="this.src='https://unpkg.com/axios/dist/axios.min.js'"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f0f2f5;
+        }
+        .app-container {
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        .user-info {
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        .user-info:hover {
+            opacity: 0.9;
+        }
+        .main-content {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .stat-icon.blue { background: #e6f7ff; color: #1890ff; }
+        .stat-icon.green { background: #f6ffed; color: #52c41a; }
+        .stat-icon.orange { background: #fff7e6; color: #fa8c16; }
+        .stat-icon.red { background: #fff1f0; color: #f5222d; }
+        .stat-icon.gray { background: #f5f5f5; color: #8c8c8c; }
+        .stat-info h3 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #262626;
+        }
+        .stat-info p {
+            font-size: 14px;
+            color: #8c8c8c;
+            margin-top: 4px;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .status-tag {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-idle { background: #f6ffed; color: #52c41a; }
+        .status-in_use { background: #e6f7ff; color: #1890ff; }
+        .status-maintenance { background: #fff7e6; color: #fa8c16; }
+        .status-scrapped { background: #f5f5f5; color: #8c8c8c; }
+        .pagination-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+        .action-buttons .el-button,
+        .action-buttons .el-dropdown {
+            margin: 0;
+        }
+        .search-row {
+            flex-wrap: wrap;
+        }
+        .search-col {
+            margin-bottom: 8px;
+        }
+        .search-buttons {
+            text-align: left;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        /* 登录页面样式 */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-box h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .login-box .el-form-item {
+            margin-bottom: 20px;
+        }
+        .login-box .el-button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .login-logo el-icon {
+            font-size: 48px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            .main-content {
+                padding: 10px;
+            }
+            .search-bar {
+                padding: 12px;
+            }
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-info h3 {
+                font-size: 20px;
+            }
+            .action-buttons {
+                justify-content: flex-start;
+            }
+            .action-buttons .el-button {
+                font-size: 14px;
+                padding: 8px 12px;
+                min-height: 36px;
+            }
+            .el-table {
+                font-size: 13px;
+            }
+            .el-dialog {
+                width: 95% !important;
+                margin: 10px auto !important;
+            }
+            .el-form-item__label {
+                font-size: 13px;
+            }
+            .el-input, .el-select {
+                font-size: 14px;
+            }
+            .pagination-container {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .el-pagination {
+                font-size: 12px;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) {
+            .el-button:active {
+                opacity: 0.8;
+            }
+            .el-table__row {
+                min-height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 登录页面 -->
+        <div v-if="!isLoggedIn" class="login-container">
+            <div class="login-box">
+                <div class="login-logo">
+                    <el-icon :size="48" color="#667eea"><van /></el-icon>
+                </div>
+                <h2>车辆档案管理系统</h2>
+                <el-form :model="loginForm" @keyup.enter="handleLogin">
+                    <el-form-item>
+                        <el-input
+                            v-model="loginForm.username"
+                            placeholder="用户名"
+                            size="large"
+                            clearable
+                        >
+                            <template #prefix>
+                                <el-icon><user /></el-icon>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-input
+                            v-model="loginForm.password"
+                            type="password"
+                            placeholder="密码"
+                            size="large"
+                            show-password
+                            clearable
+                        >
+                            <template #prefix>
+                                <el-icon><lock /></el-icon>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button
+                            type="primary"
+                            size="large"
+                            :loading="loginLoading"
+                            @click="handleLogin"
+                        >
+                            登录
+                        </el-button>
+                    </el-form-item>
+                </el-form>
+                <div style="text-align: center; margin-top: 20px; color: #999; font-size: 12px;">
+                    默认账号: admin / admin123
+                </div>
+            </div>
+        </div>
+
+        <!-- 主页面 -->
+        <div v-else class="app-container">
+        <!-- 头部 -->
+        <header class="header">
+            <h1><el-icon><van /></el-icon> 车辆档案管理系统</h1>
+            <div class="header-right">
+                <el-dropdown @command="handleLogout">
+                    <span class="user-info">
+                        <el-icon><user /></el-icon>
+                        {{ currentUser?.name || currentUser?.username }}
+                        <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </span>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item>登出</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 统计卡片 -->
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <el-icon><van /></el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.total }}</h3>
+                        <p>车辆总数</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <el-icon><circle-check /></el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.idle }}</h3>
+                        <p>闲置可用</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <el-icon><loading /></el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.in_use }}</h3>
+                        <p>使用中</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <el-icon><warning /></el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ stats.maintenance }}</h3>
+                        <p>维修中</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="cursor: pointer;" @click="showInsuranceAlert">
+                    <div class="stat-icon" style="background: #fff2e8; color: #fa541c;">
+                        <el-icon><bell /></el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <h3 style="color: #fa541c;">{{ stats.insurance_soon_expire || 0 }}</h3>
+                        <p>保险即将到期</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜索栏 -->
+            <div class="search-bar">
+                <el-row :gutter="12" align="middle" class="search-row">
+                    <el-col :xs="24" :sm="8" :md="6" class="search-col">
+                        <el-input
+                            v-model="searchForm.keyword"
+                            placeholder="搜索车牌号/品牌/型号"
+                            clearable
+                            @keyup.enter="handleSearch"
+                        >
+                            <template #prefix>
+                                <el-icon><search /></el-icon>
+                            </template>
+                        </el-input>
+                    </el-col>
+                    <el-col :xs="12" :sm="6" :md="4" class="search-col">
+                        <el-select v-model="searchForm.status" placeholder="车辆状态" clearable style="width: 100%;">
+                            <el-option label="闲置" value="idle"></el-option>
+                            <el-option label="使用中" value="in_use"></el-option>
+                            <el-option label="维修中" value="maintenance"></el-option>
+                            <el-option label="已报废" value="scrapped"></el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :xs="12" :sm="6" :md="4" class="search-col">
+                        <el-input v-model="searchForm.department" placeholder="所属部门" clearable></el-input>
+                    </el-col>
+                    <el-col :xs="24" :sm="4" :md="6" class="search-col search-buttons">
+                        <el-button type="primary" @click="handleSearch" size="default">
+                            <el-icon><search /></el-icon> 搜索
+                        </el-button>
+                        <el-button @click="resetSearch" size="default">重置</el-button>
+                    </el-col>
+                </el-row>
+                <el-row style="margin-top: 12px;">
+                    <el-col :span="24">
+                        <div class="action-buttons">
+                            <el-button type="info" @click="showApplicationDialog">
+                                <el-icon><document /></el-icon> 用车申请
+                            </el-button>
+                            <el-button @click="backupData" :loading="backupLoading">
+                                <el-icon><folder /></el-icon> 备份
+                            </el-button>
+                            <el-dropdown @command="handleImportCommand">
+                                <el-button type="warning" :loading="importLoading">
+                                    <el-icon><upload /></el-icon> 导入
+                                </el-button>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item command="import">导入Excel</el-dropdown-item>
+                                        <el-dropdown-item command="template">下载模板</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                            <el-button type="primary" @click="exportToExcel" :loading="exportLoading">
+                                <el-icon><download /></el-icon> 导出
+                            </el-button>
+                            <el-button type="success" @click="showAddDialog">
+                                <el-icon><plus /></el-icon> 新增
+                            </el-button>
+                            <el-button v-if="currentUser?.role === 'admin'" type="danger" @click="showUserDialog">
+                                <el-icon><user /></el-icon> 用户管理
+                            </el-button>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+
+            <!-- 表格 -->
+            <div class="table-container" style="overflow-x: auto;">
+                <el-table
+                    :data="tableData"
+                    v-loading="loading"
+                    stripe
+                    style="min-width: 1000px;"
+                >
+                    <el-table-column type="index" label="#" width="50"></el-table-column>
+                    <el-table-column prop="plate_number" label="车牌号" width="140" sortable>
+                        <template #default="{ row }">
+                            <el-tag
+                                :color="getPlateColor(row.plate_number).bg"
+                                :style="{ color: getPlateColor(row.plate_number).text, borderColor: getPlateColor(row.plate_number).border }"
+                                effect="dark"
+                            >
+                                {{ row.plate_number }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="brand" label="品牌" width="100"></el-table-column>
+                    <el-table-column prop="model" label="型号" width="120"></el-table-column>
+                    <el-table-column prop="color" label="颜色" width="80"></el-table-column>
+                    <el-table-column prop="seat_count" label="座位" width="80" align="center"></el-table-column>
+                    <el-table-column prop="status" label="状态" width="100">
+                        <template #default="{ row }">
+                            <span :class="'status-tag status-' + row.status">
+                                {{ statusText[row.status] }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="current_mileage" label="里程(km)" width="120">
+                        <template #default="{ row }">
+                            {{ row.current_mileage?.toLocaleString() || 0 }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="department" label="所属部门" width="120"></el-table-column>
+                    <el-table-column prop="purchase_date" label="购买日期" width="120">
+                        <template #default="{ row }">
+                            {{ formatDate(row.purchase_date) }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="insurance_end" label="保险到期" width="120">
+                        <template #default="{ row }">
+                            <span :style="{ color: isExpired(row.insurance_end) ? '#f5222d' : '' }">
+                                {{ formatDate(row.insurance_end) }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="保养状态" width="180">
+                        <template #default="{ row }">
+                            <div v-if="row.maintenance_interval">
+                                <el-tag :type="getMaintenanceStatus(row).type" size="small">
+                                    {{ getMaintenanceStatus(row).text }}
+                                </el-tag>
+                                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                    下次: {{ getNextMaintenance(row).toLocaleString() }}km
+                                </div>
+                                <div style="font-size: 11px; color: #999;">
+                                    剩余: {{ getRemainingMileage(row).toLocaleString() }}km
+                                </div>
+                            </div>
+                            <span v-else style="color: #999;">未设置</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="200" fixed="right">
+                        <template #default="{ row }">
+                            <el-button type="primary" size="small" @click="showEditDialog(row)">
+                                编辑
+                            </el-button>
+                            <el-button type="warning" size="small" @click="showMaintenanceDialog(row)">
+                                维修
+                            </el-button>
+                            <el-button type="danger" size="small" @click="handleDelete(row)">
+                                删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <!-- 分页 -->
+                <div class="pagination-container">
+                    <el-pagination
+                        v-model:current-page="pagination.page"
+                        v-model:page-size="pagination.pageSize"
+                        :total="pagination.total"
+                        :page-sizes="[10, 20, 50, 100]"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @size-change="handleSizeChange"
+                        @current-change="handlePageChange"
+                    ></el-pagination>
+                </div>
+            </div>
+        </main>
+
+        <!-- 新增/编辑对话框 -->
+        <el-dialog
+            v-model="dialogVisible"
+            :title="isEdit ? '编辑车辆' : '新增车辆'"
+            width="800px"
+            destroy-on-close
+        >
+            <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+                <el-divider content-position="left">基本信息</el-divider>
+                <div class="form-row">
+                    <el-form-item label="车牌号" prop="plate_number">
+                        <el-input
+                            v-model="form.plate_number"
+                            placeholder="如：京A12345"
+                            @input="formatPlateNumber"
+                            maxlength="9"
+                        ></el-input>
+                    </el-form-item>
+                    <el-form-item label="品牌">
+                        <el-input v-model="form.brand" placeholder="如：奥迪"></el-input>
+                    </el-form-item>
+                    <el-form-item label="型号">
+                        <el-input v-model="form.model" placeholder="如：A6L"></el-input>
+                    </el-form-item>
+                </div>
+                <div class="form-row">
+                    <el-form-item label="颜色">
+                        <el-input v-model="form.color" placeholder="如：黑色"></el-input>
+                    </el-form-item>
+                    <el-form-item label="座位数">
+                        <el-input-number v-model="form.seat_count" :min="1" :max="50"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="车辆状态">
+                        <el-select v-model="form.status" style="width: 100%;">
+                            <el-option label="闲置" value="idle"></el-option>
+                            <el-option label="使用中" value="in_use"></el-option>
+                            <el-option label="维修中" value="maintenance"></el-option>
+                            <el-option label="已报废" value="scrapped"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </div>
+
+                <el-divider content-position="left">购置信息</el-divider>
+                <div class="form-row">
+                    <el-form-item label="购买日期">
+                        <el-date-picker
+                            v-model="form.purchase_date"
+                            type="date"
+                            placeholder="选择日期"
+                            style="width: 100%;"
+                            value-format="YYYY-MM-DD"
+                        ></el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="购买价格">
+                        <el-input-number
+                            v-model="form.purchase_price"
+                            :min="0"
+                            :precision="2"
+                            style="width: 100%;"
+                        ></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="供应商">
+                        <el-input v-model="form.supplier" placeholder="车辆供应商"></el-input>
+                    </el-form-item>
+                </div>
+
+                <el-divider content-position="left">证件信息</el-divider>
+                <div class="form-row">
+                    <el-form-item label="车架号">
+                        <el-input v-model="form.vin_code" placeholder="VIN码"></el-input>
+                    </el-form-item>
+                    <el-form-item label="发动机号">
+                        <el-input v-model="form.engine_number" placeholder="发动机编号"></el-input>
+                    </el-form-item>
+                    <el-form-item label="所属部门">
+                        <el-input v-model="form.department" placeholder="如：行政部"></el-input>
+                    </el-form-item>
+                </div>
+
+                <el-divider content-position="left">保险信息</el-divider>
+                <div class="form-row">
+                    <el-form-item label="保险公司">
+                        <el-input v-model="form.insurance_company" placeholder="如：平安保险"></el-input>
+                    </el-form-item>
+                    <el-form-item label="保单号">
+                        <el-input v-model="form.insurance_no" placeholder="保险单号"></el-input>
+                    </el-form-item>
+                    <el-form-item label="当前里程">
+                        <el-input-number
+                            v-model="form.current_mileage"
+                            :min="0"
+                            style="width: 100%;"
+                        ></el-input-number>
+                    </el-form-item>
+                </div>
+                <div class="form-row">
+                    <el-form-item label="保险生效">
+                        <el-date-picker
+                            v-model="form.insurance_start"
+                            type="date"
+                            placeholder="生效日期"
+                            style="width: 100%;"
+                            value-format="YYYY-MM-DD"
+                        ></el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="保险到期">
+                        <el-date-picker
+                            v-model="form.insurance_end"
+                            type="date"
+                            placeholder="到期日期"
+                            style="width: 100%;"
+                            value-format="YYYY-MM-DD"
+                        ></el-date-picker>
+                    </el-form-item>
+                </div>
+
+                <el-divider content-position="left">保养信息</el-divider>
+                <div class="form-row">
+                    <el-form-item label="保养周期">
+                        <el-input-number
+                            v-model="form.maintenance_interval"
+                            :min="1000"
+                            :step="1000"
+                            style="width: 100%;"
+                        ></el-input-number>
+                        <span style="color: #999; font-size: 12px; margin-left: 8px;">公里</span>
+                    </el-form-item>
+                    <el-form-item label="上次保养里程">
+                        <el-input-number
+                            v-model="form.last_maintenance_mileage"
+                            :min="0"
+                            style="width: 100%;"
+                        ></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="上次保养日期">
+                        <el-date-picker
+                            v-model="form.last_maintenance_date"
+                            type="date"
+                            placeholder="选择日期"
+                            style="width: 100%;"
+                            value-format="YYYY-MM-DD"
+                        ></el-date-picker>
+                    </el-form-item>
+                </div>
+            </el-form>
+            <template #footer>
+                <el-button @click="dialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 保险到期提醒对话框 -->
+        <el-dialog v-model="insuranceDialogVisible" title="保险即将到期车辆" width="700px">
+            <el-table :data="insuranceAlertList" stripe>
+                <el-table-column prop="plate_number" label="车牌号" width="120">
+                    <template #default="{ row }">
+                        <el-tag :color="getPlateColor(row.plate_number).bg" :style="{ color: getPlateColor(row.plate_number).text }" effect="dark">
+                            {{ row.plate_number }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="brand" label="品牌" width="100"></el-table-column>
+                <el-table-column prop="model" label="型号" width="120"></el-table-column>
+                <el-table-column prop="department" label="部门" width="100"></el-table-column>
+                <el-table-column prop="insurance_end" label="保险到期日" width="120">
+                    <template #default="{ row }">
+                        <span style="color: #f5222d; font-weight: bold;">{{ formatDate(row.insurance_end) }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="剩余天数" width="100">
+                    <template #default="{ row }">
+                        <span style="color: #f5222d;">{{ getDaysUntil(row.insurance_end) }}天</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <!-- 维修记录对话框 -->
+        <el-dialog v-model="maintenanceDialogVisible" :title="'维修记录 - ' + currentVehicle.plate_number" width="900px">
+            <el-button type="primary" @click="showAddMaintenance" style="margin-bottom: 16px;">新增维修记录</el-button>
+            <el-table :data="maintenanceRecords" stripe>
+                <el-table-column prop="maintenance_type" label="维修类型" width="120"></el-table-column>
+                <el-table-column prop="description" label="描述"></el-table-column>
+                <el-table-column prop="cost" label="费用(元)" width="100">
+                    <template #default="{ row }">{{ row.cost?.toFixed(2) || 0 }}</template>
+                </el-table-column>
+                <el-table-column prop="mileage" label="里程" width="100"></el-table-column>
+                <el-table-column prop="repair_shop" label="维修店" width="120"></el-table-column>
+                <el-table-column prop="maintenance_date" label="日期" width="120">
+                    <template #default="{ row }">{{ formatDate(row.maintenance_date) }}</template>
+                </el-table-column>
+                <el-table-column label="操作" width="80">
+                    <template #default="{ row }">
+                        <el-button type="danger" size="small" @click="deleteMaintenance(row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <!-- 新增维修记录对话框 -->
+        <el-dialog v-model="addMaintenanceVisible" title="新增维修记录" width="600px">
+            <el-form :model="maintenanceForm" label-width="100px">
+                <el-form-item label="维修类型" required>
+                    <el-select v-model="maintenanceForm.maintenance_type" style="width: 100%;">
+                        <el-option label="常规保养" value="常规保养"></el-option>
+                        <el-option label="故障维修" value="故障维修"></el-option>
+                        <el-option label="事故维修" value="事故维修"></el-option>
+                        <el-option label="零部件更换" value="零部件更换"></el-option>
+                        <el-option label="其他" value="其他"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="维修描述">
+                    <el-input v-model="maintenanceForm.description" type="textarea" rows="3"></el-input>
+                </el-form-item>
+                <el-form-item label="维修费用">
+                    <el-input-number v-model="maintenanceForm.cost" :min="0" :precision="2" style="width: 100%;"></el-input-number>
+                </el-form-item>
+                <el-form-item label="维修时里程">
+                    <el-input-number v-model="maintenanceForm.mileage" :min="0" style="width: 100%;"></el-input-number>
+                </el-form-item>
+                <el-form-item label="维修店">
+                    <el-input v-model="maintenanceForm.repair_shop" placeholder="如：XX 4S店"></el-input>
+                </el-form-item>
+                <el-form-item label="维修日期">
+                    <el-date-picker v-model="maintenanceForm.maintenance_date" type="date" value-format="YYYY-MM-DD" style="width: 100%;"></el-date-picker>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="addMaintenanceVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitMaintenance" :loading="maintenanceLoading">确定</el-button>
+            </template>
+        </el-dialog>
+
+<!-- 用车申请管理对话框 -->
+        <el-dialog v-model="applicationDialogVisible" title="用车申请管理" width="1000px">
+            <el-tabs v-model="applicationActiveTab">
+                <el-tab-pane label="申请列表" name="list">
+                    <el-table :data="applications" stripe>
+                        <el-table-column prop="applicant_name" label="申请人" width="100"></el-table-column>
+                        <el-table-column prop="department" label="部门" width="100"></el-table-column>
+                        <el-table-column prop="reason" label="事由" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="destination" label="目的地" width="120"></el-table-column>
+                        <el-table-column prop="start_time" label="出发时间" width="150">
+                            <template #default="{ row }">{{ formatDateTime(row.start_time) }}</template>
+                        </el-table-column>
+                        <el-table-column prop="status" label="状态" width="100">
+                            <template #default="{ row }">
+                                <el-tag :type="getAppStatusType(row.status)">{{ getAppStatusText(row.status) }}</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="操作" width="200">
+                            <template #default="{ row }">
+                                <el-button v-if="row.status === 'pending'" type="success" size="small" @click="showApproveDialog(row)">审批</el-button>
+                                <el-button type="danger" size="small" @click="deleteApplication(row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-tab-pane>
+                <el-tab-pane label="新建申请" name="create">
+                    <el-form :model="applicationForm" label-width="100px">
+                        <el-form-item label="申请人" required>
+                            <el-input v-model="applicationForm.applicant_name"></el-input>
+                        </el-form-item>
+                        <el-form-item label="部门">
+                            <el-input v-model="applicationForm.department"></el-input>
+                        </el-form-item>
+                        <el-form-item label="联系电话">
+                            <el-input v-model="applicationForm.phone"></el-input>
+                        </el-form-item>
+                        <el-form-item label="用车事由">
+                            <el-input v-model="applicationForm.reason" type="textarea" rows="3"></el-input>
+                        </el-form-item>
+                        <el-form-item label="目的地">
+                            <el-input v-model="applicationForm.destination"></el-input>
+                        </el-form-item>
+                        <el-form-item label="乘车人数">
+                            <el-input-number v-model="applicationForm.passengers" :min="1"></el-input-number>
+                        </el-form-item>
+                        <el-form-item label="出发时间">
+                            <el-date-picker v-model="applicationForm.start_time" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%;"></el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="返回时间">
+                            <el-date-picker v-model="applicationForm.end_time" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%;"></el-date-picker>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click="submitApplication" :loading="appLoading">提交申请</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-tab-pane>
+            </el-tabs>
+        </el-dialog>
+
+        <!-- 审批对话框 -->
+        <el-dialog v-model="approveDialogVisible" title="审批用车申请" width="500px">
+            <el-form :model="approvalForm" label-width="100px">
+                <el-form-item label="申请人">
+                    <span>{{ currentApplication?.applicant_name }}</span>
+                </el-form-item>
+                <el-form-item label="用车事由">
+                    <span>{{ currentApplication?.reason }}</span>
+                </el-form-item>
+                <el-form-item label="分配车辆">
+                    <el-select v-model="approvalForm.vehicle_id" style="width: 100%;">
+                        <el-option v-for="v in idleVehicles" :key="v.id" :label="v.plate_number + ' - ' + v.brand + v.model" :value="v.id"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="审批人" required>
+                    <el-input v-model="approvalForm.approver"></el-input>
+                </el-form-item>
+                <el-form-item label="审批结果" required>
+                    <el-radio-group v-model="approvalForm.status">
+                        <el-radio label="approved">通过</el-radio>
+                        <el-radio label="rejected">拒绝</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="审批意见">
+                    <el-input v-model="approvalForm.comment" type="textarea" rows="3"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="approveDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitApproval" :loading="approvalLoading">确定</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 导入对话框 -->
+        <el-dialog v-model="importDialogVisible" title="导入车辆数据" width="500px">
+            <el-upload
+                ref="uploadRef"
+                action=""
+                :auto-upload="false"
+                :on-change="handleFileChange"
+                :limit="1"
+                accept=".xlsx,.xls"
+            >
+                <el-button type="primary">选择Excel文件</el-button>
+                <template #tip>
+                    <div class="el-upload__tip">
+                        请使用模板格式导入，<el-link type="primary" @click="downloadTemplate">下载模板</el-link>
+                    </div>
+                </template>
+            </el-upload>
+            <template #footer>
+                <el-button @click="importDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="confirmImport" :loading="importLoading">开始导入</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 用户管理对话框 -->
+        <el-dialog v-model="userDialogVisible" title="用户管理" width="600px">
+            <div style="margin-bottom: 16px;">
+                <el-button type="primary" @click="showAddUserForm = true" v-if="!showAddUserForm">
+                    <el-icon><plus /></el-icon> 添加用户
+                </el-button>
+            </div>
+
+            <!-- 添加用户表单 -->
+            <el-form v-if="showAddUserForm" :model="newUserForm" label-width="100px" style="margin-bottom: 20px; padding: 16px; background: #f5f7fa; border-radius: 8px;">
+                <el-form-item label="用户名" required>
+                    <el-input v-model="newUserForm.username" placeholder="3-50个字符"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" required>
+                    <el-input v-model="newUserForm.password" type="password" placeholder="6-50个字符"></el-input>
+                </el-form-item>
+                <el-form-item label="姓名">
+                    <el-input v-model="newUserForm.name" placeholder="显示名称"></el-input>
+                </el-form-item>
+                <el-form-item label="角色">
+                    <el-select v-model="newUserForm.role" style="width: 100%;">
+                        <el-option label="普通用户" value="user"></el-option>
+                        <el-option label="管理员" value="admin"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitAddUser" :loading="addUserLoading">创建</el-button>
+                    <el-button @click="showAddUserForm = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+
+            <!-- 用户列表 -->
+            <el-table :data="userList" v-loading="userLoading" stripe>
+                <el-table-column prop="username" label="用户名" width="120"></el-table-column>
+                <el-table-column prop="name" label="姓名" width="100">
+                    <template #default="{ row }">{{ row.name || '-' }}</template>
+                </el-table-column>
+                <el-table-column prop="role" label="角色" width="100">
+                    <template #default="{ row }">
+                        <el-tag :type="row.role === 'admin' ? 'danger' : 'info'">
+                            {{ row.role === 'admin' ? '管理员' : '普通用户' }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="120">
+                    <template #default="{ row }">
+                        <el-button v-if="row.username !== 'admin'" type="danger" size="small" @click="deleteUser(row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <template #footer>
+                <el-button @click="userDialogVisible = false">关闭</el-button>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        // 全局错误捕获
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('JS Error:', msg, 'at line', line);
+            document.body.innerHTML = '<div style="padding:20px;color:red"><h3>页面加载出错</h3><pre>' + msg + '</pre></div>';
+            return false;
+        };
+
+        // 调试：检查库是否加载
+        console.log('Vue loaded:', typeof Vue);
+        console.log('ElementPlus loaded:', typeof ElementPlus);
+        console.log('ElementPlusIconsVue loaded:', typeof ElementPlusIconsVue);
+        console.log('axios loaded:', typeof axios);
+
+        try {
+            const { createApp, ref, reactive, onMounted } = Vue;
+            const { ElMessage, ElMessageBox } = ElementPlus;
+
+        // API 基础URL
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Axios 实例
+        const api = axios.create({
+            baseURL: API_BASE,
+            timeout: 10000
+        });
+
+        // 请求拦截器：自动添加 token
+        api.interceptors.request.use(config => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.params = config.params || {};
+                config.params.token = token;
+            }
+            return config;
+        }, error => {
+            return Promise.reject(error);
+        });
+
+        const app = createApp({
+            setup() {
+                // ==================== 登录相关 ====================
+                const isLoggedIn = ref(false);
+                const loginLoading = ref(false);
+                const loginForm = reactive({
+                    username: '',
+                    password: ''
+                });
+                const currentUser = ref(null);
+
+                // 检查登录状态
+                const checkLoginStatus = () => {
+                    const token = localStorage.getItem('token');
+                    const user = localStorage.getItem('user');
+                    if (token && user) {
+                        isLoggedIn.value = true;
+                        currentUser.value = JSON.parse(user);
+                        // 设置 axios 默认 token
+                        api.defaults.params = { token };
+                    }
+                };
+
+                // 登录
+                const handleLogin = async () => {
+                    if (!loginForm.username || !loginForm.password) {
+                        ElMessage.warning('请输入用户名和密码');
+                        return;
+                    }
+                    loginLoading.value = true;
+                    try {
+                        const res = await axios.post(`${API_BASE}/login`, loginForm);
+                        if (res.data.success) {
+                            isLoggedIn.value = true;
+                            currentUser.value = res.data.user;
+                            localStorage.setItem('token', res.data.token);
+                            localStorage.setItem('user', JSON.stringify(res.data.user));
+                            // 设置 axios 默认 token
+                            api.defaults.params = { token: res.data.token };
+                            ElMessage.success('登录成功');
+                            // 加载数据
+                            fetchData();
+                            fetchStats();
+                        } else {
+                            ElMessage.error(res.data.message);
+                        }
+                    } catch (error) {
+                        ElMessage.error('登录失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        loginLoading.value = false;
+                    }
+                };
+
+                // 登出
+                const handleLogout = async () => {
+                    try {
+                        const token = localStorage.getItem('token');
+                        if (token) {
+                            await api.post('/logout', null, { params: { token } });
+                        }
+                    } catch (e) {
+                        // 忽略错误
+                    }
+                    isLoggedIn.value = false;
+                    currentUser.value = null;
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    api.defaults.params = {};
+                    ElMessage.success('已登出');
+                };
+
+                // 表格数据
+                const tableData = ref([]);
+                const loading = ref(false);
+                const dialogVisible = ref(false);
+                const isEdit = ref(false);
+                const submitLoading = ref(false);
+                const exportLoading = ref(false);
+                const backupLoading = ref(false);
+                // 导入相关
+                const importLoading = ref(false);
+                const importDialogVisible = ref(false);
+                const uploadRef = ref(null);
+                const selectedFile = ref(null);
+
+                // 表单引用
+                const formRef = ref(null);
+
+                // 保险提醒
+                const insuranceDialogVisible = ref(false);
+                const insuranceAlertList = ref([]);
+
+                // 维修记录
+                const maintenanceDialogVisible = ref(false);
+                const addMaintenanceVisible = ref(false);
+                const maintenanceLoading = ref(false);
+                const currentVehicle = ref({});
+                const maintenanceRecords = ref([]);
+                const maintenanceForm = reactive({
+                    vehicle_id: null,
+                    maintenance_type: '常规保养',
+                    description: '',
+                    cost: 0,
+                    mileage: 0,
+                    repair_shop: '',
+                    maintenance_date: null
+                });
+
+                // 用车申请
+                const applicationDialogVisible = ref(false);
+                const applicationActiveTab = ref('list');
+                const applications = ref([]);
+                const appLoading = ref(false);
+                const applicationForm = reactive({
+                    applicant_name: '',
+                    department: '',
+                    phone: '',
+                    reason: '',
+                    destination: '',
+                    passengers: 1,
+                    start_time: null,
+                    end_time: null
+                });
+                const approveDialogVisible = ref(false);
+                const approvalLoading = ref(false);
+                const currentApplication = ref(null);
+                const approvalForm = reactive({
+                    vehicle_id: null,
+                    approver: '',
+                    status: 'approved',
+                    comment: ''
+                });
+                const idleVehicles = ref([]);
+
+                // 用户管理
+                const userDialogVisible = ref(false);
+                const showAddUserForm = ref(false);
+                const userList = ref([]);
+                const userLoading = ref(false);
+                const addUserLoading = ref(false);
+                const newUserForm = reactive({
+                    username: '',
+                    password: '',
+                    name: '',
+                    role: 'user'
+                });
+
+                // 统计数据
+                const stats = reactive({
+                    total: 0,
+                    idle: 0,
+                    in_use: 0,
+                    maintenance: 0,
+                    scrapped: 0
+                });
+
+                // 搜索表单
+                const searchForm = reactive({
+                    keyword: '',
+                    status: '',
+                    department: ''
+                });
+
+                // 分页
+                const pagination = reactive({
+                    page: 1,
+                    pageSize: 20,
+                    total: 0
+                });
+
+                // 表单数据
+                const form = reactive({
+                    plate_number: '',
+                    brand: '',
+                    model: '',
+                    color: '',
+                    seat_count: 5,
+                    purchase_date: null,
+                    purchase_price: 0,
+                    supplier: '',
+                    vin_code: '',
+                    engine_number: '',
+                    insurance_company: '',
+                    insurance_no: '',
+                    insurance_start: null,
+                    insurance_end: null,
+                    status: 'idle',
+                    current_mileage: 0,
+                    department: '',
+                    // 保养信息
+                    maintenance_interval: 5000,
+                    last_maintenance_mileage: 0,
+                    last_maintenance_date: null
+                });
+
+                // 表单验证规则
+                const rules = {
+                    plate_number: [
+                        { required: true, message: '请输入车牌号', trigger: 'blur' },
+                        { min: 5, max: 20, message: '长度在5到20个字符', trigger: 'blur' }
+                    ]
+                };
+
+                // 状态文本映射
+                const statusText = {
+                    idle: '闲置',
+                    in_use: '使用中',
+                    maintenance: '维修中',
+                    scrapped: '已报废'
+                };
+
+                // 格式化车牌号（自动添加分隔符）
+                const formatPlateNumber = (value) => {
+                    if (!value) return;
+
+                    // 保留中文、字母、数字，移除其他字符（如空格、点、横线）
+                    let plate = value.replace(/[^\u4e00-\u9fa5A-Z0-9]/gi, '');
+
+                    // 转换为大写（除了中文）
+                    plate = plate.replace(/[a-z]/g, (match) => match.toUpperCase());
+
+                    // 自动添加分隔符（在中文字母后）
+                    if (plate.length >= 2) {
+                        // 检查是否已包含分隔符
+                        if (!plate.includes('·')) {
+                            // 找到中文后的位置（通常是第1个字符后）
+                            const firstChar = plate[0];
+                            const isFirstCharChinese = /[\u4e00-\u9fa5]/.test(firstChar);
+
+                            if (isFirstCharChinese && plate.length > 1) {
+                                // 新能源车牌判断：第2位是D/F
+                                if (['D', 'F'].includes(plate[1]) && plate.length > 2) {
+                                    plate = plate.substring(0, 2) + '·' + plate.substring(2);
+                                } else {
+                                    plate = plate.substring(0, 1) + '·' + plate.substring(1);
+                                }
+                            } else if (!isFirstCharChinese && plate.length > 2) {
+                                // 非中文开头（如军车WJ），在第2位后加
+                                plate = plate.substring(0, 2) + '·' + plate.substring(2);
+                            }
+                        }
+                    }
+
+                    // 限制最大长度
+                    if (plate.length > 10) {
+                        plate = plate.substring(0, 10);
+                    }
+
+                    form.plate_number = plate;
+                };
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '-';
+                    const date = new Date(dateStr);
+                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                };
+
+                // 判断是否过期
+                const isExpired = (dateStr) => {
+                    if (!dateStr) return false;
+                    const expiry = new Date(dateStr);
+                    const today = new Date();
+                    return expiry < today;
+                };
+
+                // 计算下次保养里程
+                const getNextMaintenance = (row) => {
+                    if (!row.maintenance_interval) return 0;
+                    return (row.last_maintenance_mileage || 0) + row.maintenance_interval;
+                };
+
+                // 计算剩余保养里程
+                const getRemainingMileage = (row) => {
+                    const nextMaintenance = getNextMaintenance(row);
+                    const current = row.current_mileage || 0;
+                    return Math.max(0, nextMaintenance - current);
+                };
+
+                // 获取保养状态
+                const getMaintenanceStatus = (row) => {
+                    const remaining = getRemainingMileage(row);
+                    const interval = row.maintenance_interval || 5000;
+
+                    if (!row.maintenance_interval) {
+                        return { type: 'info', text: '未设置' };
+                    }
+
+                    // 剩余里程少于10%时警告
+                    if (remaining === 0) {
+                        return { type: 'danger', text: '已超期' };
+                    } else if (remaining < interval * 0.1) {
+                        return { type: 'warning', text: '即将到期' };
+                    } else if (remaining < interval * 0.3) {
+                        return { type: 'warning', text: '需注意' };
+                    } else {
+                        return { type: 'success', text: '正常' };
+                    }
+                };
+
+                // 判断车牌颜色
+                const getPlateColor = (plateNumber) => {
+                    if (!plateNumber) return { bg: '#909399', text: '#fff', border: '#909399', type: '未知' };
+
+                    // 清理车牌格式：移除分隔符
+                    const plate = plateNumber.replace(/[\s·\-]/g, '');
+
+                    // 新能源车牌（绿牌）：长度8位（比蓝牌多1位）
+                    if (plate.length === 8) {
+                        return { bg: '#52c41a', text: '#000', border: '#52c41a', type: '新能源' };
+                    }
+
+                    // 黄牌（大型车辆、挂车）：以挂/学/警结尾
+                    if (/[挂学警]$/.test(plate)) {
+                        return { bg: '#faad14', text: '#000', border: '#faad14', type: '黄牌' };
+                    }
+
+                    // 军车/警车（白牌）
+                    if (/^[军警WJ]/.test(plate) || plate.includes('警')) {
+                        return { bg: '#fff', text: '#000', border: '#d9d9d9', type: '白牌' };
+                    }
+
+                    // 外籍车（黑牌）
+                    if (/^[使领]/.test(plate)) {
+                        return { bg: '#000', text: '#fff', border: '#000', type: '黑牌' };
+                    }
+
+                    // 普通蓝牌（默认）：蓝底白字，长度7位
+                    return { bg: '#1890ff', text: '#fff', border: '#1890ff', type: '蓝牌' };
+                };
+
+                // 获取统计数据
+                const fetchStats = async () => {
+                    try {
+                        const res = await axios.get('http://localhost:8000/api/statistics');
+                        Object.assign(stats, res.data);
+                    } catch (error) {
+                        console.error('获取统计失败:', error);
+                    }
+                };
+
+                // 页面加载时检查登录状态
+                checkLoginStatus();
+
+                // 获取列表数据
+                const fetchData = async () => {
+                    loading.value = true;
+                    try {
+                        const params = {
+                            skip: (pagination.page - 1) * pagination.pageSize,
+                            limit: pagination.pageSize,
+                            ...searchForm
+                        };
+                        const res = await api.get('/vehicles', { params });
+                        tableData.value = res.data.items;
+                        pagination.total = res.data.total;
+                    } catch (error) {
+                        ElMessage.error('获取数据失败: ' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // 搜索
+                const handleSearch = () => {
+                    pagination.page = 1;
+                    fetchData();
+                };
+
+                // 重置搜索
+                const resetSearch = () => {
+                    searchForm.keyword = '';
+                    searchForm.status = '';
+                    searchForm.department = '';
+                    handleSearch();
+                };
+
+                // 显示新增对话框
+                const showAddDialog = () => {
+                    isEdit.value = false;
+                    resetForm();
+                    dialogVisible.value = true;
+                };
+
+                // 显示编辑对话框
+                const showEditDialog = (row) => {
+                    isEdit.value = true;
+                    Object.assign(form, row);
+                    dialogVisible.value = true;
+                };
+
+                // 重置表单
+                const resetForm = () => {
+                    Object.assign(form, {
+                        plate_number: '',
+                        brand: '',
+                        model: '',
+                        color: '',
+                        seat_count: 5,
+                        purchase_date: null,
+                        purchase_price: 0,
+                        supplier: '',
+                        vin_code: '',
+                        engine_number: '',
+                        insurance_company: '',
+                        insurance_no: '',
+                        insurance_start: null,
+                        insurance_end: null,
+                        status: 'idle',
+                        current_mileage: 0,
+                        department: '',
+                        // 保养信息
+                        maintenance_interval: 5000,
+                        last_maintenance_mileage: 0,
+                        last_maintenance_date: null
+                    });
+                };
+
+                // 提交表单
+                const handleSubmit = async () => {
+                    const valid = await formRef.value?.validate().catch(() => false);
+                    if (!valid) return;
+
+                    submitLoading.value = true;
+                    try {
+                        if (isEdit.value) {
+                            await api.put(`/vehicles/${form.id}`, form);
+                            ElMessage.success('更新成功');
+                        } else {
+                            await api.post('/vehicles', form);
+                            ElMessage.success('添加成功');
+                        }
+                        dialogVisible.value = false;
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        ElMessage.error('操作失败: ' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        submitLoading.value = false;
+                    }
+                };
+
+                // 删除
+                const handleDelete = async (row) => {
+                    try {
+                        await ElMessageBox.confirm(
+                            `确定要删除车辆 ${row.plate_number} 吗？`,
+                            '确认删除',
+                            { type: 'warning' }
+                        );
+                        await api.delete(`/vehicles/${row.id}`);
+                        ElMessage.success('删除成功');
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            ElMessage.error('删除失败: ' + (error.response?.data?.detail || error.message));
+                        }
+                    }
+                };
+
+                // 导出Excel
+                const exportToExcel = async () => {
+                    exportLoading.value = true;
+                    try {
+                        // 构建查询参数（使用当前筛选条件）
+                        const params = new URLSearchParams();
+                        if (searchForm.status && searchForm.status.trim()) {
+                            params.append('status', searchForm.status.trim());
+                        }
+                        if (searchForm.department && searchForm.department.trim()) {
+                            params.append('department', searchForm.department.trim());
+                        }
+                        if (searchForm.keyword && searchForm.keyword.trim()) {
+                            params.append('keyword', searchForm.keyword.trim());
+                        }
+
+                        const queryString = params.toString();
+                        const url = queryString
+                            ? `${API_BASE}/vehicles/export?${queryString}`
+                            : `${API_BASE}/vehicles/export`;
+
+                        const response = await axios.get(url, { responseType: 'blob' });
+
+                        // 创建下载链接
+                        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+
+                        // 从响应头获取文件名，或使用默认名称
+                        const contentDisposition = response.headers['content-disposition'];
+                        let filename = '车辆档案.xlsx';
+                        if (contentDisposition) {
+                            const matches = contentDisposition.match(/filename="(.+)"/);
+                            if (matches && matches[1]) {
+                                filename = decodeURIComponent(matches[1]);
+                            }
+                        }
+
+                        link.setAttribute('download', filename);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(downloadUrl);
+
+                        ElMessage.success('导出成功');
+                    } catch (error) {
+                        console.error('导出错误:', error);
+                        ElMessage.error('导出失败: ' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        exportLoading.value = false;
+                    }
+                };
+
+                // 分页
+                const handleSizeChange = (size) => {
+                    pagination.pageSize = size;
+                    fetchData();
+                };
+
+                const handlePageChange = (page) => {
+                    pagination.page = page;
+                    fetchData();
+                };
+
+                // 获取剩余天数
+                const getDaysUntil = (dateStr) => {
+                    if (!dateStr) return 0;
+                    const expiry = new Date(dateStr);
+                    const today = new Date();
+                    const diff = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+                    return Math.max(0, diff);
+                };
+
+                // 显示保险提醒
+                const showInsuranceAlert = async () => {
+                    try {
+                        const res = await api.get('/vehicles/alerts/insurance');
+                        insuranceAlertList.value = res.data.items || [];
+                        insuranceDialogVisible.value = true;
+                    } catch (error) {
+                        ElMessage.error('获取保险提醒失败');
+                    }
+                };
+
+                // 处理导入菜单
+                const handleImportCommand = (cmd) => {
+                    if (cmd === 'import') {
+                        importDialogVisible.value = true;
+                    } else if (cmd === 'template') {
+                        downloadTemplate();
+                    }
+                };
+
+                // 下载模板
+                const downloadTemplate = async () => {
+                    try {
+                        const response = await axios.get(`${API_BASE}/vehicles/template`, { responseType: 'blob' });
+                        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', '车辆导入模板.xlsx');
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                        ElMessage.error('下载模板失败');
+                    }
+                };
+
+                // 文件选择
+                const handleFileChange = (file) => {
+                    selectedFile.value = file.raw;
+                };
+
+                // 确认导入
+                const confirmImport = async () => {
+                    if (!selectedFile.value) {
+                        ElMessage.warning('请选择要导入的文件');
+                        return;
+                    }
+
+                    importLoading.value = true;
+                    const formData = new FormData();
+                    formData.append('file', selectedFile.value);
+
+                    try {
+                        const res = await axios.post(`${API_BASE}/vehicles/import`, formData, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        ElMessage.success(`导入成功：${res.data.imported}条，跳过：${res.data.skipped}条`);
+                        importDialogVisible.value = false;
+                        selectedFile.value = null;
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        ElMessage.error('导入失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        importLoading.value = false;
+                    }
+                };
+
+                // 显示维修记录对话框
+                const showMaintenanceDialog = async (row) => {
+                    currentVehicle.value = row;
+                    maintenanceForm.vehicle_id = row.id;
+                    maintenanceForm.mileage = row.current_mileage || 0;
+                    await fetchMaintenanceRecords(row.id);
+                    maintenanceDialogVisible.value = true;
+                };
+
+                // 获取维修记录
+                const fetchMaintenanceRecords = async (vehicleId) => {
+                    try {
+                        const res = await api.get('/maintenance', { params: { vehicle_id: vehicleId, limit: 100 } });
+                        maintenanceRecords.value = res.data.items;
+                    } catch (error) {
+                        ElMessage.error('获取维修记录失败');
+                    }
+                };
+
+                // 显示新增维修记录
+                const showAddMaintenance = () => {
+                    Object.assign(maintenanceForm, {
+                        vehicle_id: currentVehicle.value.id,
+                        maintenance_type: '常规保养',
+                        description: '',
+                        cost: 0,
+                        mileage: currentVehicle.value.current_mileage || 0,
+                        repair_shop: '',
+                        maintenance_date: new Date().toISOString().split('T')[0]
+                    });
+                    addMaintenanceVisible.value = true;
+                };
+
+                // 提交维修记录
+                const submitMaintenance = async () => {
+                    if (!maintenanceForm.maintenance_type) {
+                        ElMessage.warning('请选择维修类型');
+                        return;
+                    }
+                    maintenanceLoading.value = true;
+                    try {
+                        await api.post('/maintenance', maintenanceForm);
+                        ElMessage.success('添加维修记录成功');
+                        addMaintenanceVisible.value = false;
+                        await fetchMaintenanceRecords(currentVehicle.value.id);
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        ElMessage.error('添加失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        maintenanceLoading.value = false;
+                    }
+                };
+
+                // 删除维修记录
+                const deleteMaintenance = async (row) => {
+                    try {
+                        await ElMessageBox.confirm('确定删除这条维修记录？', '确认', { type: 'warning' });
+                        await api.delete(`/maintenance/${row.id}`);
+                        ElMessage.success('删除成功');
+                        await fetchMaintenanceRecords(currentVehicle.value.id);
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            ElMessage.error('删除失败');
+                        }
+                    }
+                };
+
+                // 格式化日期时间
+                const formatDateTime = (dtStr) => {
+                    if (!dtStr) return '-';
+                    const dt = new Date(dtStr);
+                    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+                };
+
+                // 用车申请状态
+                const getAppStatusType = (status) => {
+                    const map = { pending: 'warning', approved: 'success', rejected: 'danger', completed: 'info' };
+                    return map[status] || 'info';
+                };
+                const getAppStatusText = (status) => {
+                    const map = { pending: '待审批', approved: '已通过', rejected: '已拒绝', completed: '已完成' };
+                    return map[status] || status;
+                };
+
+                // 显示用车申请对话框
+                const showApplicationDialog = async () => {
+                    applicationDialogVisible.value = true;
+                    await fetchApplications();
+                    await fetchIdleVehicles();
+                };
+
+                // 获取申请列表
+                const fetchApplications = async () => {
+                    try {
+                        const res = await api.get('/applications', { params: { limit: 100 } });
+                        applications.value = res.data.items;
+                    } catch (error) {
+                        console.error('获取申请列表失败:', error);
+                    }
+                };
+
+                // 获取闲置车辆
+                const fetchIdleVehicles = async () => {
+                    try {
+                        const res = await api.get('/vehicles', { params: { status: 'idle', limit: 100 } });
+                        idleVehicles.value = res.data.items;
+                    } catch (error) {
+                        console.error('获取闲置车辆失败:', error);
+                    }
+                };
+
+                // 提交用车申请
+                const submitApplication = async () => {
+                    if (!applicationForm.applicant_name) {
+                        ElMessage.warning('请输入申请人');
+                        return;
+                    }
+                    appLoading.value = true;
+                    try {
+                        await api.post('/applications', applicationForm);
+                        ElMessage.success('申请提交成功');
+                        Object.assign(applicationForm, {
+                            applicant_name: '', department: '', phone: '', reason: '',
+                            destination: '', passengers: 1, start_time: null, end_time: null
+                        });
+                        applicationActiveTab.value = 'list';
+                        await fetchApplications();
+                    } catch (error) {
+                        ElMessage.error('提交失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        appLoading.value = false;
+                    }
+                };
+
+                // 显示审批对话框
+                const showApproveDialog = (row) => {
+                    currentApplication.value = row;
+                    approvalForm.vehicle_id = null;
+                    approvalForm.approver = '';
+                    approvalForm.status = 'approved';
+                    approvalForm.comment = '';
+                    approveDialogVisible.value = true;
+                };
+
+                // 提交审批
+                const submitApproval = async () => {
+                    if (!approvalForm.approver) {
+                        ElMessage.warning('请输入审批人');
+                        return;
+                    }
+                    approvalLoading.value = true;
+                    try {
+                        await api.put(`/applications/${currentApplication.value.id}/approve`, approvalForm);
+                        ElMessage.success('审批成功');
+                        approveDialogVisible.value = false;
+                        await fetchApplications();
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        ElMessage.error('审批失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        approvalLoading.value = false;
+                    }
+                };
+
+                // 删除申请
+                const deleteApplication = async (row) => {
+                    try {
+                        await ElMessageBox.confirm('确定删除这条申请？', '确认', { type: 'warning' });
+                        await api.delete(`/applications/${row.id}`);
+                        ElMessage.success('删除成功');
+                        await fetchApplications();
+                        fetchData();
+                        fetchStats();
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            ElMessage.error('删除失败');
+                        }
+                    }
+                };
+
+                // 数据备份
+                const backupData = async () => {
+                    backupLoading.value = true;
+                    try {
+                        const res = await api.get('/backup');
+                        ElMessage.success(`备份成功：${res.data.file}`);
+                    } catch (error) {
+                        ElMessage.error('备份失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        backupLoading.value = false;
+                    }
+                };
+
+                // 用户管理
+                const showUserDialog = () => {
+                    userDialogVisible.value = true;
+                    fetchUserList();
+                };
+
+                const fetchUserList = async () => {
+                    userLoading.value = true;
+                    try {
+                        const res = await api.get('/users');
+                        userList.value = res.data;
+                    } catch (error) {
+                        ElMessage.error('获取用户列表失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        userLoading.value = false;
+                    }
+                };
+
+                const submitAddUser = async () => {
+                    if (!newUserForm.username || newUserForm.username.length < 3) {
+                        ElMessage.warning('用户名至少需要3个字符');
+                        return;
+                    }
+                    if (!newUserForm.password || newUserForm.password.length < 6) {
+                        ElMessage.warning('密码至少需要6个字符');
+                        return;
+                    }
+
+                    addUserLoading.value = true;
+                    try {
+                        await api.post('/users', newUserForm);
+                        ElMessage.success('创建用户成功');
+                        showAddUserForm.value = false;
+                        // 重置表单
+                        newUserForm.username = '';
+                        newUserForm.password = '';
+                        newUserForm.name = '';
+                        newUserForm.role = 'user';
+                        // 刷新列表
+                        fetchUserList();
+                    } catch (error) {
+                        ElMessage.error('创建用户失败：' + (error.response?.data?.detail || error.message));
+                    } finally {
+                        addUserLoading.value = false;
+                    }
+                };
+
+                const deleteUser = async (row) => {
+                    try {
+                        await ElMessageBox.confirm(`确定删除用户 "${row.username}" 吗？`, '确认删除', {
+                            type: 'warning'
+                        });
+                        await api.delete(`/users/${row.id}`);
+                        ElMessage.success('删除成功');
+                        fetchUserList();
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            ElMessage.error('删除失败：' + (error.response?.data?.detail || error.message));
+                        }
+                    }
+                };
+
+                onMounted(() => {
+                    if (isLoggedIn.value) {
+                        fetchData();
+                        fetchStats();
+                    }
+                });
+
+                return {
+                    // 登录相关
+                    isLoggedIn,
+                    loginLoading,
+                    loginForm,
+                    currentUser,
+                    handleLogin,
+                    handleLogout,
+                    // 表格数据
+                    tableData,
+                    loading,
+                    dialogVisible,
+                    isEdit,
+                    submitLoading,
+                    exportLoading,
+                    importLoading,
+                    backupLoading,
+                    formRef,
+                    uploadRef,
+                    stats,
+                    searchForm,
+                    pagination,
+                    form,
+                    rules,
+                    statusText,
+                    insuranceDialogVisible,
+                    insuranceAlertList,
+                    importDialogVisible,
+                    selectedFile,
+                    // 维修记录
+                    maintenanceDialogVisible,
+                    addMaintenanceVisible,
+                    maintenanceLoading,
+                    currentVehicle,
+                    maintenanceRecords,
+                    maintenanceForm,
+                    // 用车申请
+                    applicationDialogVisible,
+                    applicationActiveTab,
+                    applications,
+                    appLoading,
+                    applicationForm,
+                    approveDialogVisible,
+                    approvalLoading,
+                    currentApplication,
+                    approvalForm,
+                    idleVehicles,
+                    // 用户管理
+                    userDialogVisible,
+                    showAddUserForm,
+                    userList,
+                    userLoading,
+                    addUserLoading,
+                    newUserForm,
+                    formatDate,
+                    formatDateTime,
+                    isExpired,
+                    formatPlateNumber,
+                    getNextMaintenance,
+                    getRemainingMileage,
+                    getMaintenanceStatus,
+                    getPlateColor,
+                    getDaysUntil,
+                    handleSearch,
+                    resetSearch,
+                    showAddDialog,
+                    showEditDialog,
+                    handleSubmit,
+                    handleDelete,
+                    handleSizeChange,
+                    handlePageChange,
+                    exportToExcel,
+                    showInsuranceAlert,
+                    handleImportCommand,
+                    handleFileChange,
+                    confirmImport,
+                    downloadTemplate,
+                    // 维修记录
+                    showMaintenanceDialog,
+                    showAddMaintenance,
+                    submitMaintenance,
+                    deleteMaintenance,
+                    // 用车申请
+                    getAppStatusType,
+                    getAppStatusText,
+                    showApplicationDialog,
+                    submitApplication,
+                    showApproveDialog,
+                    submitApproval,
+                    deleteApplication,
+                    backupData,
+                    // 用户管理
+                    showUserDialog,
+                    fetchUserList,
+                    submitAddUser,
+                    deleteUser
+                };
+            }
+        });
+
+        // 注册 Element Plus 图标
+        if (typeof ElementPlusIconsVue !== 'undefined') {
+            for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+                app.component(key, component);
+            }
+        }
+
+        app.use(ElementPlus);
+        app.mount('#app');
+        } catch (e) {
+            console.error('App initialization error:', e);
+            document.body.innerHTML = '<div style="padding:20px;color:red"><h3>应用初始化失败</h3><pre>' + e.message + '</pre></div>';
+        }
+    </script>
+</body>
+</html>

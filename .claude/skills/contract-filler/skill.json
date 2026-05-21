@@ -1,0 +1,25 @@
+{
+  "name": "contract-filler",
+  "description": "建设工程检测合同自动填充工具，OCR识别网页截图→自动填入Word合同",
+  "version": "2.0.0",
+  "commands": [
+    {
+      "name": "fill-contract-ocr",
+      "description": "OCR全自动：截图→识别→填入合同",
+      "usage": "contract_filler_ocr.py <截图.png> [--template 模板.doc]",
+      "script": "contract_filler_ocr.py"
+    },
+    {
+      "name": "fill-contract",
+      "description": "配置模式：读取config.json填入合同",
+      "usage": "contract_filler.py config.json",
+      "script": "contract_filler.py"
+    }
+  ],
+  "requirements": [
+    "pywin32",
+    "paddlepaddle",
+    "paddleocr"
+  ],
+  "author": "custom"
+}

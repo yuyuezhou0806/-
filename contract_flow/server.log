@@ -1,0 +1,23 @@
+INFO:     Started server process [28584]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+[IO_MODULE] Loading routers/io.py V2
+INFO:     127.0.0.1:49765 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60322 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60322 - "GET /css/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54049 - "GET /js/api.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61411 - "GET /js/signature.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61902 - "GET /js/pdf.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58789 - "GET /js/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54049 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+INFO:     127.0.0.1:54049 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54049 - "GET /forms HTTP/1.1" 200 OK
+INFO:     10.21.3.48:58426 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     10.21.3.48:52475 - "GET /favicon.ico HTTP/1.1" 404 Not Found

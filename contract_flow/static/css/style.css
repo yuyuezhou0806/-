@@ -1,0 +1,36 @@
+@media print {
+    .no-print { display: none !important; }
+}
+
+.form-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    line-height: 1.4;
+    table-layout: fixed;
+}
+.form-table td, .form-table th {
+    border: 1px solid #000;
+    padding: 4px 6px;
+    vertical-align: middle;
+    overflow-wrap: break-word;
+}
+.form-table .label-cell {
+    background-color: #f9fafb;
+    text-align: center;
+    font-weight: normal;
+}
+.form-table input[type="text"],
+.form-table input[type="number"],
+.form-table input[type="date"] {
+    outline: none;
+    padding: 2px 4px;
+    box-sizing: border-box;
+}
+.writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 2px;
+    text-align: center;
+    padding: 8px 4px !important;
+}
