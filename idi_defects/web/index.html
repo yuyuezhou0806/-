@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#1F4E78" />
 <title>IDI 缺陷速查</title>
+
+<!-- ===== 百度统计 (请把 BAIDU_HM_ID_HERE 替换为真实统计 ID) ===== -->
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?BAIDU_HM_ID_HERE";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html, body { -webkit-tap-highlight-color: transparent; }
@@ -20,12 +32,43 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
+<!-- ===== 登录/注册界面 ===== -->
+<div id="auth-screen" class="fixed inset-0 z-50 bg-[#1F4E78] flex items-center justify-center px-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+    <h2 class="text-xl font-bold text-center text-[#1F4E78] mb-1">IDI 缺陷速查</h2>
+    <p class="text-xs text-slate-400 text-center mb-6">请登录后使用</p>
+
+    <div id="auth-form">
+      <input id="auth-username" type="text" placeholder="用户名" autocomplete="username"
+             class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base mb-3 outline-none focus:border-[#1F4E78]" />
+      <input id="auth-password" type="password" placeholder="密码" autocomplete="current-password"
+             class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base mb-3 outline-none focus:border-[#1F4E78]" />
+      <input id="auth-code" type="text" placeholder="注册密令"
+             class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base mb-3 outline-none focus:border-[#1F4E78]" />
+      <label class="flex items-center gap-2 mb-4 text-sm text-slate-600 cursor-pointer">
+        <input id="auth-remember" type="checkbox" class="w-4 h-4 rounded border-slate-300 text-[#1F4E78]" />
+        <span>记住我（一年内免登录）</span>
+      </label>
+      <div id="auth-error" class="hidden text-xs text-rose-600 mb-3 text-center"></div>
+      <button id="btn-login" class="w-full rounded-lg bg-[#1F4E78] text-white py-2.5 text-base font-medium active:opacity-80">登录</button>
+      <button id="btn-register" class="w-full rounded-lg bg-white text-[#1F4E78] border border-[#1F4E78] py-2.5 text-base font-medium mt-2 active:bg-slate-50">注册新账号</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 主应用界面 ===== -->
+<div id="app-screen" class="hidden">
+
 <!-- 顶栏 -->
 <header class="sticky top-0 z-30 bg-[#1F4E78] text-white shadow-md pt-safe">
   <div class="px-3 pt-2 pb-2">
     <div class="flex items-center gap-2 mb-2">
       <h1 class="text-base font-semibold flex-1">IDI 缺陷速查</h1>
       <span id="count" class="text-xs opacity-80">加载中…</span>
+      <div class="flex items-center gap-2">
+        <span id="user-name" class="text-xs opacity-80 hidden"></span>
+        <button id="btn-logout" class="text-xs bg-white/20 px-2 py-1 rounded active:bg-white/30 hidden">退出</button>
+      </div>
     </div>
     <div class="relative">
       <input id="q" type="search" enterkeyhint="search" autocomplete="off"
@@ -64,6 +107,13 @@
   <button id="top" class="text-[#1F4E78] font-medium">回顶</button>
 </footer>
 
+</div> <!-- /#app-screen -->
+
+<!-- 图片放大查看 -->
+<div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+  <img id="lightbox-img" class="max-w-full max-h-[90vh] rounded-lg" />
+</div>
+
 <template id="card-tpl">
   <article class="bg-white rounded-xl shadow-sm border border-slate-100 p-3">
     <div class="flex items-center gap-1.5 mb-2 flex-wrap">
@@ -72,6 +122,7 @@
       <span data-f="minor"  class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600"></span>
       <span data-f="id"     class="text-[10px] ml-auto text-slate-400"></span>
     </div>
+    <img data-f="image" class="w-full rounded-lg mb-2 hidden" style="max-height:200px;object-fit:cover;cursor:pointer;" />
     <div class="text-[15px] font-semibold leading-snug" data-f="problem"></div>
     <div class="mt-2 text-[13px] text-slate-600 leading-relaxed" data-f="standard"></div>
     <details class="mt-2 group">
@@ -96,6 +147,124 @@
   const $ = (s, p=document) => p.querySelector(s);
   const $$ = (s, p=document) => Array.from(p.querySelectorAll(s));
 
+  // ===== 认证相关 =====
+  const API_BASE = "";
+  let authToken = localStorage.getItem("idi_token") || "";
+
+  function showAuth() {
+    $("#auth-screen").classList.remove("hidden");
+    $("#app-screen").classList.add("hidden");
+  }
+  function showApp() {
+    $("#auth-screen").classList.add("hidden");
+    $("#app-screen").classList.remove("hidden");
+    $("#user-name").classList.remove("hidden");
+    $("#btn-logout").classList.remove("hidden");
+  }
+
+  async function api(path, opts = {}) {
+    const url = API_BASE + path;
+    const headers = { "Content-Type": "application/json", ...opts.headers };
+    if (authToken) headers["Authorization"] = "Bearer " + authToken;
+    const res = await fetch(url, { ...opts, headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "请求失败");
+    return data;
+  }
+
+  async function doLogin() {
+    const username = $("#auth-username").value.trim();
+    const password = $("#auth-password").value;
+    const remember = $("#auth-remember").checked;
+    if (!username || !password) { showAuthError("请输入用户名和密码"); return; }
+    try {
+      const data = await api("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password, remember })
+      });
+      authToken = data.access_token;
+      localStorage.setItem("idi_token", authToken);
+      enterApp(username);
+    } catch (e) { showAuthError(e.message); }
+  }
+
+  async function doRegister() {
+    const username = $("#auth-username").value.trim();
+    const password = $("#auth-password").value;
+    const code = $("#auth-code").value.trim();
+    const remember = $("#auth-remember").checked;
+    if (!username || !password) { showAuthError("请输入用户名和密码"); return; }
+    if (password.length < 6) { showAuthError("密码至少6位"); return; }
+    if (!code) { showAuthError("请输入注册密令"); return; }
+    try {
+      const data = await api("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ username, password, remember, code })
+      });
+      authToken = data.access_token;
+      localStorage.setItem("idi_token", authToken);
+      enterApp(username);
+    } catch (e) { showAuthError(e.message); }
+  }
+
+  function showAuthError(msg) {
+    const el = $("#auth-error");
+    el.textContent = msg;
+    el.classList.remove("hidden");
+  }
+
+  function enterApp(username) {
+    $("#auth-error").classList.add("hidden");
+    $("#auth-username").value = "";
+    $("#auth-password").value = "";
+    $("#user-name").textContent = username;
+    showApp();
+    loadData();
+  }
+
+  function doLogout() {
+    authToken = "";
+    localStorage.removeItem("idi_token");
+    $("#user-name").textContent = "";
+    $("#user-name").classList.add("hidden");
+    $("#btn-logout").classList.add("hidden");
+    showAuth();
+  }
+
+  // 事件绑定
+  $("#btn-login").addEventListener("click", doLogin);
+  $("#btn-register").addEventListener("click", doRegister);
+  $("#btn-logout").addEventListener("click", doLogout);
+  $("#auth-password").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+
+  // 页面加载: 检查 token
+  async function checkAuth() {
+    if (!authToken) { showAuth(); return; }
+    try {
+      const data = await api("/api/auth/me");
+      enterApp(data.username);
+    } catch (e) {
+      authToken = "";
+      localStorage.removeItem("idi_token");
+      showAuth();
+    }
+  }
+
+  // 图片放大
+  function showLightbox(src) {
+    const box = $("#lightbox");
+    $("#lightbox-img").src = src;
+    box.classList.remove("hidden");
+  }
+
+  // ----- 埋点 (百度统计自定义事件) -----
+  // category: 大类(search/copy/filter), action: 具体动作, label: 详细
+  function track(category, action, label) {
+    try {
+      (window._hmt = window._hmt || []).push(['_trackEvent', category, action, String(label || '')]);
+    } catch(e) {}
+  }
+
   const state = {
     data: [],
     filtered: [],
@@ -107,18 +276,26 @@
   };
 
   // ----------- 加载数据 -----------
-  fetch("defects.json", { cache: "no-cache" })
-    .then(r => r.json())
-    .then(data => {
+  async function loadData() {
+    try {
+      const res = await fetch("defects.json", {
+        cache: "no-cache",
+        headers: authToken ? { "Authorization": "Bearer " + authToken } : {}
+      });
+      if (!res.ok) throw new Error("加载失败 " + res.status);
+      const data = await res.json();
       state.data = data;
       $("#count").textContent = `共 ${data.length} 条`;
       buildCategoryBar();
       render();
-    })
-    .catch(err => {
+    } catch (err) {
       $("#count").textContent = "加载失败";
-      $("#list").innerHTML = `<div class="p-4 bg-white rounded-lg text-rose-600 text-sm">无法加载 defects.json: ${err.message}</div>`;
-    });
+      $("#list").innerHTML = `<div class="p-4 bg-white rounded-lg text-rose-600 text-sm">无法加载数据: ${err.message}</div>`;
+    }
+  }
+
+  // 启动: 先检查登录状态
+  checkAuth();
 
   // ----------- 类别 chip 条 -----------
   function buildCategoryBar() {
@@ -152,6 +329,9 @@
       else state[kind] = label;
       updateChipStyle();
       state.page = 1;
+      // 埋点:类别筛选
+      if (state[kind]) track('filter', kind, label);
+      else track('filter', kind + '_clear', '');
       render();
     });
     return b;
@@ -183,7 +363,12 @@
     state.q = e.target.value.trim();
     $("#clear").classList.toggle("hidden", !state.q);
     clearTimeout(qTimer);
-    qTimer = setTimeout(() => { state.page = 1; render(); }, 120);
+    qTimer = setTimeout(() => {
+      state.page = 1;
+      render();
+      // 埋点:用户搜索关键词(只在长度 >= 2 时上报,避免单字噪音)
+      if (state.q.length >= 2) track('search', 'keyword', state.q);
+    }, 120);
   });
   $("#clear").addEventListener("click", () => {
     $("#q").value = "";
@@ -226,6 +411,15 @@
       setHL(card.querySelector('[data-f="major"]'),  d.category_major, []);
       setHL(card.querySelector('[data-f="minor"]'),  d.category_minor, []);
       card.querySelector('[data-f="id"]').textContent = d.global_id;
+      // 图片
+      const imgEl = card.querySelector('[data-f="image"]');
+      if (d.image) {
+        imgEl.src = "imgs/" + d.image;
+        imgEl.classList.remove("hidden");
+        imgEl.addEventListener("click", () => showLightbox(imgEl.src));
+      } else {
+        imgEl.classList.add("hidden");
+      }
       setHL(card.querySelector('[data-f="problem"]'),    d.problem || d.description, tokens);
       setHL(card.querySelector('[data-f="standard"]'),   d.standard, tokens);
       setHL(card.querySelector('[data-f="suggestion"]'), d.suggestion, tokens);
@@ -243,6 +437,8 @@
                    (d.standard ? `依据:${d.standard}\n` : "") +
                    `建议:${d.suggestion}`;
           }
+          // 埋点:复制行为(包含缺陷 ID,可以看哪些条目最常被引用)
+          track('copy', kind, d.global_id);
           copy(text).then(ok => toast(ok ? `已复制 (${text.length} 字)` : "复制失败"));
         });
       });
