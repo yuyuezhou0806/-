@@ -18,6 +18,12 @@ import os
 import re
 import sys
 import tempfile
+
+# 关闭 paddle 的 oneDNN / PIR 加速,避免在部分 CPU 上触发
+# "ConvertPirAttribute2RuntimeAttribute not support" 错误。
+os.environ.setdefault('FLAGS_use_mkldnn', '0')
+os.environ.setdefault('FLAGS_enable_pir_in_executor', '0')
+
 import win32com.client
 
 
@@ -34,7 +40,7 @@ def ocr_image(image_path):
         use_textline_orientation=True,
         lang='ch',
     )
-    result = ocr.ocr(image_path, cls=True)
+    result = ocr.ocr(image_path)
 
     # 提取所有文字
     texts = []

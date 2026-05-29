@@ -67,3 +67,52 @@ keyword_search.json
 
 # Unity project (large, many files)
 ShiZhe_CaoYang/
+
+# Remote deployment scripts (temporary)
+remote_*.py
+deploy_*.py
+update_contract_web.py
+upload_*.py
+fix_nginx_contract.py
+fix_gangzi_paths.py
+redeploy_gangzi.py
+
+# Temp env/nginx/service files
+_env
+_nginx_*
+_service
+_test_import.py
+_download_model.py
+
+# Personal/temp files
+ai_answer.md
+interview_prep.md
+EOF
+
+# Archives
+chroma_data.tar.gz
+frontend_dist.tar.gz
+
+# Temp directories
+gpt_image_playground_tmp/
+idi_defects_web_backup/
+ppt_images/
+contract_exe_build/build/
+
+# Generated outputs and uploads
+contract_web/outputs/
+contract_web/uploads/
+idi_defects/web/imgs/
+idi_defects/web/imgs_old/
+idi_defects/word_images/
+settlement_forms/outputs/
+settlement_forms/inputs/
+
+# PPT tools (temp)
+ppt_*.py
+extract_ppt_content.py
+generate_ppt.py
+md_to_pdf.py
+
+# Resume (personal)
+resume.html

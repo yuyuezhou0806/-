@@ -68,7 +68,7 @@ def add_riding_seal(doc, seal_img, seal_height_ratio=0.20, edge_visible_ratio=0.
 
         rect = fitz.Rect(slice_x, slice_y,
                          slice_x + slice_display_w, slice_y + display_seal_h)
-        page.insert_image(rect, stream=buf.read())
+        page.insert_image(rect, stream=buf.read(), overlay=True)
 
     return page_count
 
@@ -115,7 +115,7 @@ def enlarge_existing_seals(doc, seal_img, new_width_pt,
         buf = io.BytesIO()
         seal_img.save(buf, format='PNG')
         buf.seek(0)
-        doc[pi].insert_image(rect, stream=buf.read())
+        doc[pi].insert_image(rect, stream=buf.read(), overlay=True)
 
     return len(targets)
 
@@ -181,14 +181,15 @@ def add_yifang_seal_at_text(doc, seal_img, width_pt, page_num=0, search_text=Non
         return {'added': 0, 'page': None, 'keyword': None}
 
     page = doc[pi]
-    cx = r.x1 + width_pt * 0.4
-    cy = r.y1 + new_h * 0.2
+    # 章中心放在文本右下方,压住"签章"文字的一部分,更像真实盖章
+    cx = r.x1 + width_pt * 0.15
+    cy = r.y1 + new_h * 0.05
     rect = fitz.Rect(cx - width_pt/2, cy - new_h/2,
                      cx + width_pt/2, cy + new_h/2)
     buf = io.BytesIO()
     seal_img.save(buf, format='PNG')
     buf.seek(0)
-    page.insert_image(rect, stream=buf.read())
+    page.insert_image(rect, stream=buf.read(), overlay=True)
 
     return {'added': 1, 'page': pi + 1, 'keyword': search_text or '默认关键词'}
 
@@ -364,7 +365,12 @@ class StampApp:
         # ===== 日志 =====
         ttk.Label(root, text="处理日志:").pack(anchor='w', padx=12)
         self.log = scrolledtext.ScrolledText(root, height=12, font=('Consolas', 9))
-        self.log.pack(fill='both', expand=True, padx=10, pady=(0, 10))
+        self.log.pack(fill='both', expand=True, padx=10, pady=(0, 5))
+
+        # 推广信息
+        promo = tk.Label(root, text="定制 AI 应用软件落地  +v13701758707",
+                         font=('Microsoft YaHei', 9), fg='#666666', bg='#f0f0f0')
+        promo.pack(fill='x', padx=10, pady=(0, 8))
 
         self.append_log("就绪. 选择 PDF 文件或文件夹后点击「开始处理」.")
 

@@ -67,6 +67,7 @@ var _hmt = _hmt || [];
       <span id="count" class="text-xs opacity-80">加载中…</span>
       <div class="flex items-center gap-2">
         <span id="user-name" class="text-xs opacity-80 hidden"></span>
+        <a id="admin-link" href="/admin.html" class="text-xs underline opacity-80 hidden">管理后台</a>
         <button id="btn-logout" class="text-xs bg-white/20 px-2 py-1 rounded active:bg-white/30 hidden">退出</button>
       </div>
     </div>
@@ -227,6 +228,7 @@ var _hmt = _hmt || [];
     localStorage.removeItem("idi_token");
     $("#user-name").textContent = "";
     $("#user-name").classList.add("hidden");
+    $("#admin-link").classList.add("hidden");
     $("#btn-logout").classList.add("hidden");
     showAuth();
   }
@@ -243,6 +245,16 @@ var _hmt = _hmt || [];
     try {
       const data = await api("/api/auth/me");
       enterApp(data.username);
+      // 检查管理员权限
+      try {
+        const adminRes = await fetch("/api/admin/check", { headers: { "Authorization": "Bearer " + authToken } });
+        if (adminRes.ok) {
+          const adminData = await adminRes.json();
+          if (adminData.is_admin) {
+            $("#admin-link").classList.remove("hidden");
+          }
+        }
+      } catch (e) {}
     } catch (e) {
       authToken = "";
       localStorage.removeItem("idi_token");

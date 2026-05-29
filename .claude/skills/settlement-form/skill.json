@@ -1,0 +1,25 @@
+{
+  "name": "settlement-form",
+  "description": "项目结算报审单批量填充工具：读取Excel数据自动填入Word模板，生成结算报审单",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "name": "fill-settlement",
+      "description": "批量填充结算报审单",
+      "usage": "batch_fill.py <Excel文件> [--template 模板.docx] [--output 输出目录]",
+      "script": "batch_fill.py"
+    },
+    {
+      "name": "web-ui",
+      "description": "启动网页版（上传Excel即可生成）",
+      "usage": "python web_app.py",
+      "script": "web_app.py"
+    }
+  ],
+  "requirements": [
+    "python-docx",
+    "pandas",
+    "openpyxl"
+  ],
+  "author": "custom"
+}

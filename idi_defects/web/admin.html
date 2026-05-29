@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>IDI 管理后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .modal { display:none; position:fixed; inset:0; z-50; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
+  .modal.active { display:flex; }
+  .modal-content { background:white; border-radius:12px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; margin:16px; }
+  .tab-btn { padding:8px 16px; border-radius:8px; cursor:pointer; }
+  .tab-btn.active { background:#1F4E78; color:white; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:10px 12px; text-align:left; border-bottom:1px solid #e2e8f0; }
+  th { background:#f8fafc; font-weight:600; }
+  tr:hover { background:#f8fafc; }
+  .btn { padding:6px 12px; border-radius:6px; font-size:13px; cursor:pointer; border:none; }
+  .btn-primary { background:#1F4E78; color:white; }
+  .btn-danger { background:#ef4444; color:white; }
+  .btn-secondary { background:#e2e8f0; color:#334155; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px; }
+  .tag-admin { background:#dcfce7; color:#166534; }
+  .tag-user { background:#f1f5f9; color:#475569; }
+  input, select, textarea { width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none; }
+  input:focus, select:focus, textarea:focus { border-color:#1F4E78; }
+  .form-group { margin-bottom:12px; }
+  .form-group label { display:block; margin-bottom:4px; font-size:13px; color:#64748b; }
+  .img-preview { max-width:120px; max-height:80px; border-radius:4px; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+<!-- 顶部栏 -->
+<header class="bg-[#1F4E78] text-white px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <h1 class="text-lg font-bold">IDI 管理后台</h1>
+    <span id="admin-name" class="text-xs opacity-70"></span>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="/" class="text-sm underline opacity-80 hover:opacity-100">返回前台</a>
+    <button onclick="logout()" class="text-sm bg-white/20 px-3 py-1 rounded hover:bg-white/30">退出</button>
+  </div>
+</header>
+
+<!-- 标签切换 -->
+<div class="px-4 py-3 flex gap-2 bg-white border-b">
+  <button class="tab-btn active" onclick="switchTab('users')">用户管理</button>
+  <button class="tab-btn" onclick="switchTab('defects')">缺陷管理</button>
+</div>
+
+<!-- 用户管理页 -->
+<div id="tab-users" class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-lg font-semibold">用户列表</h2>
+    <button class="btn btn-primary" onclick="openUserModal()">+ 添加用户</button>
+  </div>
+  <div class="table-wrap bg-white rounded-xl shadow">
+    <table>
+      <thead><tr><th>ID</th><th>用户名</th><th>权限</th><th>注册时间</th><th>操作</th></tr></thead>
+      <tbody id="user-list"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 缺陷管理页 -->
+<div id="tab-defects" class="p-4 hidden">
+  <div class="flex flex-wrap gap-2 mb-4">
+    <input id="search-q" type="text" placeholder="搜索关键词" class="w-48" onkeydown="if(event.key==='Enter')loadDefects()" />
+    <select id="search-period" class="w-32" onchange="loadDefects()">
+      <option value="">全部期限</option>
+      <option value="十年期">十年期</option>
+      <option value="五年期">五年期</option>
+      <option value="两年期">两年期</option>
+      <option value="机电安装">机电安装</option>
+    </select>
+    <select id="search-major" class="w-40" onchange="loadDefects()">
+      <option value="">全部大类</option>
+    </select>
+    <button class="btn btn-primary" onclick="loadDefects()">搜索</button>
+    <button class="btn btn-secondary" onclick="openDefectModal()">+ 新增缺陷</button>
+  </div>
+  <div class="table-wrap bg-white rounded-xl shadow">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>期限</th><th>大类</th><th>问题描述</th><th>图片</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="defect-list"></tbody>
+    </table>
+  </div>
+  <div id="defect-pagination" class="flex justify-center gap-2 mt-4"></div>
+</div>
+
+<!-- 用户弹窗 -->
+<div id="modal-user" class="modal">
+  <div class="modal-content p-6">
+    <h3 id="user-modal-title" class="text-lg font-bold mb-4">添加用户</h3>
+    <div class="form-group"><label>用户名</label><input id="u-username" type="text" /></div>
+    <div class="form-group"><label>密码</label><input id="u-password" type="text" placeholder="至少6位" /></div>
+    <div class="form-group"><label><input id="u-admin" type="checkbox" /> 设为管理员</label></div>
+    <div class="flex gap-2 justify-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">取消</button>
+      <button class="btn btn-primary" onclick="saveUser()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 重置密码弹窗 -->
+<div id="modal-reset" class="modal">
+  <div class="modal-content p-6">
+    <h3 class="text-lg font-bold mb-4">重置密码</h3>
+    <p class="text-sm text-slate-500 mb-3">用户: <span id="reset-username"></span></p>
+    <div class="form-group"><label>新密码</label><input id="reset-password" type="text" placeholder="至少6位" /></div>
+    <div class="flex gap-2 justify-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-reset')">取消</button>
+      <button class="btn btn-primary" onclick="doReset()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div id="modal-delete" class="modal">
+  <div class="modal-content p-6">
+    <h3 class="text-lg font-bold mb-4">确认删除</h3>
+    <p class="text-sm text-slate-600 mb-4" id="delete-msg">确定删除吗？</p>
+    <div class="flex gap-2 justify-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete')">取消</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 缺陷编辑弹窗 -->
+<div id="modal-defect" class="modal">
+  <div class="modal-content p-6" style="max-width:600px;">
+    <h3 id="defect-modal-title" class="text-lg font-bold mb-4">编辑缺陷</h3>
+    <input type="hidden" id="d-global-id" />
+    <div class="grid grid-cols-2 gap-3">
+      <div class="form-group">
+        <label>风险期限</label>
+        <select id="d-period">
+          <option value="十年期">十年期</option>
+          <option value="五年期">五年期</option>
+          <option value="两年期">两年期</option>
+          <option value="机电安装">机电安装</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>大类</label>
+        <input id="d-major" type="text" />
+      </div>
+    </div>
+    <div class="form-group"><label>小类</label><input id="d-minor" type="text" /></div>
+    <div class="form-group"><label>问题描述</label><textarea id="d-problem" rows="3"></textarea></div>
+    <div class="form-group"><label>纠正和预防建议</label><textarea id="d-suggestion" rows="3"></textarea></div>
+    <div class="form-group">
+      <label>图片</label>
+      <div class="flex items-center gap-3">
+        <img id="d-img-preview" class="img-preview hidden" />
+        <input id="d-image-file" type="file" accept="image/*" onchange="previewImage()" />
+        <span id="d-image-name" class="text-sm text-slate-500"></span>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-defect')">取消</button>
+      <button class="btn btn-primary" onclick="saveDefect()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "/api/admin";
+let token = localStorage.getItem("idi_token") || "";
+let currentTab = "users";
+let defectPage = 1;
+let defectData = [];
+let editingUser = null;
+let editingDefect = null;
+
+// ========== 认证 ==========
+async function api(path, opts = {}) {
+  const res = await fetch(API_BASE + path, {
+    ...opts,
+    headers: {
+      "Authorization": "Bearer " + token,
+      ...(opts.headers || {})
+    }
+  });
+  if (res.status === 401 || res.status === 403) {
+    alert("权限不足或登录已过期");
+    location.href = "/";
+    return null;
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    alert(err.detail || "请求失败");
+    return null;
+  }
+  return res.json();
+}
+
+async function checkAdmin() {
+  if (!token) { location.href = "/"; return; }
+  const data = await api("/check");
+  if (!data || !data.is_admin) {
+    alert("需要管理员权限");
+    location.href = "/";
+    return;
+  }
+  document.getElementById("admin-name").textContent = data.username;
+}
+
+function logout() {
+  localStorage.removeItem("idi_token");
+  location.href = "/";
+}
+
+// ========== 标签切换 ==========
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.textContent.includes(tab === "users" ? "用户" : "缺陷")));
+  document.getElementById("tab-users").classList.toggle("hidden", tab !== "users");
+  document.getElementById("tab-defects").classList.toggle("hidden", tab !== "defects");
+  if (tab === "users") loadUsers();
+  else loadDefects();
+}
+
+// ========== 用户管理 ==========
+async function loadUsers() {
+  const users = await api("/users");
+  if (!users) return;
+  const tbody = document.getElementById("user-list");
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.id}</td>
+      <td>${u.username}</td>
+      <td>${u.is_admin ? '<span class="tag tag-admin">管理员</span>' : '<span class="tag tag-user">普通用户</span>'}</td>
+      <td>${u.created_at.slice(0,10)}</td>
+      <td>
+        <button class="btn ${u.is_admin ? 'btn-danger' : 'btn-secondary'}" onclick="toggleAdmin('${u.username}')">${u.is_admin ? '取消管理员' : '设为管理员'}</button>
+        <button class="btn btn-secondary" onclick="openResetModal('${u.username}')">重置密码</button>
+        <button class="btn btn-danger" onclick="confirmDeleteUser('${u.username}')">删除</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openUserModal() {
+  editingUser = null;
+  document.getElementById("user-modal-title").textContent = "添加用户";
+  document.getElementById("u-username").value = "";
+  document.getElementById("u-password").value = "";
+  document.getElementById("u-admin").checked = false;
+  document.getElementById("modal-user").classList.add("active");
+}
+
+async function saveUser() {
+  const username = document.getElementById("u-username").value.trim();
+  const password = document.getElementById("u-password").value;
+  const isAdmin = document.getElementById("u-admin").checked;
+  if (!username || !password) { alert("请填写完整"); return; }
+
+  const res = await api("/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, is_admin: isAdmin })
+  });
+  if (res) { closeModal("modal-user"); loadUsers(); }
+}
+
+function openResetModal(username) {
+  editingUser = username;
+  document.getElementById("reset-username").textContent = username;
+  document.getElementById("reset-password").value = "";
+  document.getElementById("modal-reset").classList.add("active");
+}
+
+async function doReset() {
+  const password = document.getElementById("reset-password").value;
+  if (!password || password.length < 6) { alert("密码至少6位"); return; }
+  const res = await api(`/users/${editingUser}/reset`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ new_password: password })
+  });
+  if (res) { closeModal("modal-reset"); alert("密码已重置"); }
+}
+
+function confirmDeleteUser(username) {
+  editingUser = username;
+  document.getElementById("delete-msg").textContent = `确定删除用户 "${username}" 吗？`;
+  document.getElementById("delete-confirm-btn").onclick = async () => {
+    const res = await api(`/users/${editingUser}`, { method: "DELETE" });
+    if (res) { closeModal("modal-delete"); loadUsers(); }
+  };
+  document.getElementById("modal-delete").classList.add("active");
+}
+
+async function toggleAdmin(username) {
+  if (!confirm(`确定切换用户 "${username}" 的管理员权限吗？`)) return;
+  const res = await api(`/users/${username}/toggle-admin`, { method: "POST" });
+  if (res) { loadUsers(); }
+}
+
+// ========== 缺陷管理 ==========
+async function loadDefects(page = 1) {
+  defectPage = page;
+  const q = document.getElementById("search-q").value;
+  const period = document.getElementById("search-period").value;
+  const major = document.getElementById("search-major").value;
+  const params = new URLSearchParams({ page, pageSize: "50" });
+  if (q) params.set("q", q);
+  if (period) params.set("period", period);
+  if (major) params.set("major", major);
+
+  const data = await api(`/defects?${params}`);
+  if (!data) return;
+  defectData = data.items;
+
+  const tbody = document.getElementById("defect-list");
+  tbody.innerHTML = data.items.map(d => `
+    <tr>
+      <td>${d.global_id}</td>
+      <td>${d.category_period}</td>
+      <td>${d.category_major}</td>
+      <td class="max-w-xs truncate">${d.problem || ""}</td>
+      <td>${d.image ? `<img src="/imgs/${d.image}" class="img-preview" />` : "-"}</td>
+      <td>
+        <button class="btn btn-secondary" onclick="openDefectModal('${d.global_id}')">编辑</button>
+        <button class="btn btn-danger" onclick="confirmDeleteDefect('${d.global_id}')">删除</button>
+      </td>
+    </tr>
+  `).join("");
+
+  // 分页
+  const totalPages = Math.ceil(data.total / data.pageSize);
+  let pg = "";
+  for (let i = 1; i <= totalPages; i++) {
+    pg += `<button class="btn ${i === page ? 'btn-primary' : 'btn-secondary'}" onclick="loadDefects(${i})">${i}</button>`;
+  }
+  document.getElementById("defect-pagination").innerHTML = pg;
+
+  // 更新大类筛选选项
+  const majors = [...new Set(data.items.map(d => d.category_major))].sort();
+  const majorSel = document.getElementById("search-major");
+  const currentMajor = majorSel.value;
+  majorSel.innerHTML = '<option value="">全部大类</option>' + majors.map(m => `<option value="${m}">${m}</option>`).join("");
+  majorSel.value = currentMajor;
+}
+
+function openDefectModal(globalId = null) {
+  editingDefect = globalId;
+  document.getElementById("defect-modal-title").textContent = globalId ? "编辑缺陷" : "新增缺陷";
+  document.getElementById("d-global-id").value = globalId || "";
+
+  if (globalId) {
+    const d = defectData.find(x => x.global_id === globalId);
+    if (!d) return;
+    document.getElementById("d-period").value = d.category_period || "";
+    document.getElementById("d-major").value = d.category_major || "";
+    document.getElementById("d-minor").value = d.category_minor || "";
+    document.getElementById("d-problem").value = d.problem || "";
+    document.getElementById("d-suggestion").value = d.suggestion || "";
+    document.getElementById("d-image-name").textContent = d.image || "";
+    const preview = document.getElementById("d-img-preview");
+    if (d.image) { preview.src = "/imgs/" + d.image; preview.classList.remove("hidden"); }
+    else { preview.classList.add("hidden"); }
+  } else {
+    document.getElementById("d-period").value = "十年期";
+    document.getElementById("d-major").value = "";
+    document.getElementById("d-minor").value = "";
+    document.getElementById("d-problem").value = "";
+    document.getElementById("d-suggestion").value = "";
+    document.getElementById("d-image-name").textContent = "";
+    document.getElementById("d-img-preview").classList.add("hidden");
+  }
+  document.getElementById("d-image-file").value = "";
+  document.getElementById("modal-defect").classList.add("active");
+}
+
+function previewImage() {
+  const file = document.getElementById("d-image-file").files[0];
+  if (file) {
+    const preview = document.getElementById("d-img-preview");
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
+    document.getElementById("d-image-name").textContent = file.name;
+  }
+}
+
+async function saveDefect() {
+  const globalId = document.getElementById("d-global-id").value;
+  const body = {
+    category_period: document.getElementById("d-period").value,
+    category_major: document.getElementById("d-major").value.trim(),
+    category_minor: document.getElementById("d-minor").value.trim(),
+    problem: document.getElementById("d-problem").value.trim(),
+    suggestion: document.getElementById("d-suggestion").value.trim(),
+    image: ""
+  };
+
+  // 上传图片
+  const fileInput = document.getElementById("d-image-file");
+  if (fileInput.files && fileInput.files[0]) {
+    const form = new FormData();
+    form.append("file", fileInput.files[0]);
+    const upload = await fetch("/api/admin/upload", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + token },
+      body: form
+    });
+    const uploadRes = await upload.json();
+    if (uploadRes.ok) {
+      body.image = uploadRes.filename;
+    }
+  } else if (globalId) {
+    const d = defectData.find(x => x.global_id === globalId);
+    if (d && d.image) body.image = d.image;
+  }
+
+  const url = globalId ? `/defects/${globalId}` : "/defects";
+  const method = globalId ? "PUT" : "POST";
+  const res = await api(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (res) { closeModal("modal-defect"); loadDefects(defectPage); }
+}
+
+function confirmDeleteDefect(globalId) {
+  document.getElementById("delete-msg").textContent = `确定删除缺陷 "${globalId}" 吗？`;
+  document.getElementById("delete-confirm-btn").onclick = async () => {
+    const res = await api(`/defects/${globalId}`, { method: "DELETE" });
+    if (res) { closeModal("modal-delete"); loadDefects(defectPage); }
+  };
+  document.getElementById("modal-delete").classList.add("active");
+}
+
+// ========== 弹窗工具 ==========
+function closeModal(id) {
+  document.getElementById(id).classList.remove("active");
+}
+
+// ========== 初始化 ==========
+checkAdmin().then(() => {
+  loadUsers();
+});
+</script>
+
+</body>
+</html>
