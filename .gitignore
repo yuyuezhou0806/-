@@ -23,6 +23,9 @@ dist/
 *.pptx
 *.docx
 
+# But keep the settlement form template
+!settlement_forms/template.docx
+
 # Archives
 *.rar
 *.zip
@@ -87,7 +90,6 @@ _download_model.py
 # Personal/temp files
 ai_answer.md
 interview_prep.md
-EOF
 
 # Archives
 chroma_data.tar.gz
@@ -116,3 +118,26 @@ md_to_pdf.py
 
 # Resume (personal)
 resume.html
+
+# Office temp lock files
+~$*
+
+# Settlement form temp files
+settlement_forms/output/
+settlement_forms/excel_data.json
+settlement_forms/runs.json
+settlement_forms/template_structure.json
+settlement_forms/check_*.json
+settlement_forms/uploaded_template.docx
+
+# Contract web converted docx
+contract_web/templates/*.docx
+
+# Temp deployment scripts
+fix_server.py
+fix_gangzi_paths.py
+redeploy_gangzi.py
+setup_nginx.py
+fix_nginx.py
+deploy_contract_web.py
+deploy_gangzi.py

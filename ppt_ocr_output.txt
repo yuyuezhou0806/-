@@ -1,0 +1,47 @@
+ÐÅÏ¢: ÓÃÌá¹©µÄÄ£Ê½ÎÞ·¨ÕÒµ½ÎÄ¼þ¡£
+C:\Users\admin\cc_test\.venv\Lib\site-packages\paddle\utils\cpp_extension\extension_utils.py:712: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md
+  warnings.warn(warning_message)
+[32mCreating model: ('PP-LCNet_x1_0_doc_ori', None, None)[0m
+[32mModel files already exist. Using cached files. To redownload, please delete the directory manually: `C:\Users\admin\.paddlex\official_models\PP-LCNet_x1_0_doc_ori`.[0m
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I0528 09:27:13.677395 37196 onednn_context.cc:81] oneDNN v3.6.2
+[32mCreating model: ('UVDoc', None, None)[0m
+[32mModel files already exist. Using cached files. To redownload, please delete the directory manually: `C:\Users\admin\.paddlex\official_models\UVDoc`.[0m
+[32mCreating model: ('PP-LCNet_x1_0_textline_ori', None, None)[0m
+[32mModel files already exist. Using cached files. To redownload, please delete the directory manually: `C:\Users\admin\.paddlex\official_models\PP-LCNet_x1_0_textline_ori`.[0m
+[32mCreating model: ('PP-OCRv5_server_det', None, None)[0m
+[32mModel files already exist. Using cached files. To redownload, please delete the directory manually: `C:\Users\admin\.paddlex\official_models\PP-OCRv5_server_det`.[0m
+[32mCreating model: ('PP-OCRv5_server_rec', None, None)[0m
+[32mModel files already exist. Using cached files. To redownload, please delete the directory manually: `C:\Users\admin\.paddlex\official_models\PP-OCRv5_server_rec`.[0m
+Found 72 images
+================================================================================
+Traceback (most recent call last):
+  File "C:\Users\admin\cc_test\extract_ppt_content.py", line 15, in <module>
+    result = ocr.predict(img_path)
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddleocr\_pipelines\ocr.py", line 213, in predict
+    return list(
+        self.predict_iter(
+    ...<11 lines>...
+        )
+    )
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\pipelines\_parallel.py", line 161, in predict
+    yield from self._pipeline.predict(
+    ...<3 lines>...
+    )
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\pipelines\ocr\pipeline.py", line 366, in predict
+    det_results = list(
+        self.text_det_model(doc_preprocessor_images, **text_det_params)
+    )
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\models\predictors\base_predictor.py", line 117, in __call__
+    yield from self.apply(input, **kwargs)
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\models\predictors\base_predictor.py", line 140, in apply
+    pred = self.process(batch_data, **kwargs)
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\models\text_detection\predictor.py", line 136, in process
+    batch_preds = self.runner(x=x)
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\models\runners\paddle_static\runner.py", line 297, in __call__
+    pred = self.infer(x)
+  File "C:\Users\admin\cc_test\.venv\Lib\site-packages\paddlex\inference\models\runners\paddle_static\runner.py", line 265, in __call__
+    self.predictor.run()
+    ~~~~~~~~~~~~~~~~~~^^
+NotImplementedError: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>]  (at ..\paddle\fluid\framework\new_executor\instruction\onednn\onednn_instruction.cc:118)
+

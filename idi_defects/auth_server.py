@@ -48,8 +48,74 @@ def init_db():
         c.execute("SELECT is_admin FROM users LIMIT 1")
     except sqlite3.OperationalError:
         c.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0")
+    # 统计表：每日访问次数、用户访问记录
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS stats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            user TEXT,
+            ip TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    c.execute("CREATE INDEX IF NOT EXISTS idx_stats_date ON stats(date)")
     conn.commit()
     conn.close()
+
+# ========== 访问统计 ==========
+def record_visit(username: str = None, ip: str = None):
+    """记录一次访问"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        today = datetime.now().strftime("%Y-%m-%d")
+        c.execute(
+            "INSERT INTO stats (date, user, ip, created_at) VALUES (?, ?, ?, ?)",
+            (today, username or "anonymous", ip or "", datetime.now().isoformat())
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass  # 统计失败不影响主功能
+
+def get_stats():
+    """获取统计数据"""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        today = datetime.now().strftime("%Y-%m-%d")
+        # 今日访问
+        c.execute("SELECT COUNT(*) FROM stats WHERE date = ?", (today,))
+        today_visits = c.fetchone()[0]
+        # 总访问
+        c.execute("SELECT COUNT(*) FROM stats")
+        total_visits = c.fetchone()[0]
+        # 独立用户（今日）
+        c.execute("SELECT COUNT(DISTINCT user) FROM stats WHERE date = ?", (today,))
+        today_users = c.fetchone()[0]
+        # 独立用户（总计）
+        c.execute("SELECT COUNT(DISTINCT user) FROM stats")
+        total_users = c.fetchone()[0]
+        # 最近7天每日访问
+        c.execute("""
+            SELECT date, COUNT(*) FROM stats
+            WHERE date >= date('now', '-6 days')
+            GROUP BY date ORDER BY date
+        """)
+        daily = [{"date": r[0], "count": r[1]} for r in c.fetchall()]
+        conn.close()
+        return {
+            "today_visits": today_visits,
+            "total_visits": total_visits,
+            "today_users": today_users,
+            "total_users": total_users,
+            "daily": daily,
+        }
+    except Exception:
+        return {
+            "today_visits": 0, "total_visits": 0,
+            "today_users": 0, "total_users": 0, "daily": []
+        }
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
@@ -180,6 +246,7 @@ def get_defects(credentials: HTTPAuthorizationCredentials = Depends(security)):
     if not username:
         raise HTTPException(status_code=401, detail="登录已过期")
 
+    record_visit(username=username)
     defects_path = WEB_DIR / "defects.json"
     if not defects_path.exists():
         raise HTTPException(status_code=404, detail="数据文件不存在")
@@ -240,6 +307,11 @@ def admin_check(username: str = Depends(get_current_username)):
     row = c.fetchone()
     conn.close()
     return {"is_admin": bool(row and row[0]), "username": username}
+
+@app.get("/api/stats")
+def stats_endpoint(admin: str = Depends(require_admin)):
+    """访问统计（仅管理员）"""
+    return get_stats()
 
 @app.get("/api/admin/users")
 def admin_list_users(admin: str = Depends(require_admin)):
