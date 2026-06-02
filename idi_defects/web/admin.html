@@ -29,9 +29,32 @@
   .form-group { margin-bottom:12px; }
   .form-group label { display:block; margin-bottom:4px; font-size:13px; color:#64748b; }
   .img-preview { max-width:120px; max-height:80px; border-radius:4px; }
+  /* 登录覆盖层 */
+  #login-overlay { display:flex; position:fixed; inset:0; z-60; background:#f1f5f9; align-items:center; justify-content:center; }
+  #login-overlay.hidden { display:none; }
+  #login-box { background:white; border-radius:16px; padding:40px; width:100%; max-width:380px; box-shadow:0 4px 24px rgba(0,0,0,0.1); }
+  #login-msg { color:#ef4444; font-size:13px; margin-top:8px; }
 </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
+
+<!-- 管理员登录覆盖层 -->
+<div id="login-overlay">
+  <div id="login-box">
+    <h2 class="text-xl font-bold text-[#1F4E78] mb-1">IDI 管理后台</h2>
+    <p class="text-sm text-slate-500 mb-6">请使用管理员账号登录</p>
+    <div class="form-group">
+      <label>用户名</label>
+      <input id="admin-login-user" type="text" placeholder="请输入用户名" />
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input id="admin-login-pass" type="password" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doAdminLogin()" />
+    </div>
+    <div id="login-msg"></div>
+    <button class="btn btn-primary" style="width:100%;padding:10px;font-size:15px;margin-top:12px" onclick="doAdminLogin()">登录</button>
+  </div>
+</div>
 
 <!-- 顶部栏 -->
 <header class="bg-[#1F4E78] text-white px-4 py-3 flex items-center justify-between">
@@ -212,6 +235,16 @@ let editingUser = null;
 let editingDefect = null;
 
 // ========== 认证 ==========
+function showLogin(msg) {
+  document.getElementById("login-overlay").classList.remove("hidden");
+  document.getElementById("login-msg").textContent = msg || "";
+  token = "";
+  localStorage.removeItem("idi_token");
+}
+function hideLogin() {
+  document.getElementById("login-overlay").classList.add("hidden");
+}
+
 async function api(path, opts = {}) {
   const res = await fetch(API_BASE + path, {
     ...opts,
@@ -221,8 +254,7 @@ async function api(path, opts = {}) {
     }
   });
   if (res.status === 401 || res.status === 403) {
-    alert("权限不足或登录已过期");
-    location.href = "/";
+    showLogin("权限不足或登录已过期，请重新登录");
     return null;
   }
   if (!res.ok) {
@@ -233,20 +265,60 @@ async function api(path, opts = {}) {
   return res.json();
 }
 
-async function checkAdmin() {
-  if (!token) { location.href = "/"; return; }
-  const data = await api("/check");
-  if (!data || !data.is_admin) {
-    alert("需要管理员权限");
-    location.href = "/";
+async function doAdminLogin() {
+  const username = document.getElementById("admin-login-user").value.trim();
+  const password = document.getElementById("admin-login-pass").value;
+  if (!username || !password) {
+    document.getElementById("login-msg").textContent = "请输入用户名和密码";
     return;
   }
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, remember: true })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "登录失败");
+
+    token = data.access_token;
+    localStorage.setItem("idi_token", token);
+
+    // 检查是否是管理员
+    const adminRes = await fetch("/api/admin/check", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const adminData = await adminRes.json();
+    if (!adminRes.ok || !adminData.is_admin) {
+      showLogin("该账号没有管理员权限");
+      return;
+    }
+
+    hideLogin();
+    document.getElementById("admin-name").textContent = adminData.username;
+    document.getElementById("admin-login-user").value = "";
+    document.getElementById("admin-login-pass").value = "";
+    loadUsers();
+  } catch (e) {
+    document.getElementById("login-msg").textContent = e.message;
+  }
+}
+
+async function checkAdmin() {
+  if (!token) { showLogin(); return; }
+  const data = await api("/check");
+  if (!data || !data.is_admin) {
+    showLogin("需要管理员权限，请重新登录");
+    return;
+  }
+  hideLogin();
   document.getElementById("admin-name").textContent = data.username;
 }
 
 function logout() {
-  localStorage.removeItem("idi_token");
-  location.href = "/";
+  showLogin();
+  document.getElementById("admin-login-user").value = "";
+  document.getElementById("admin-login-pass").value = "";
 }
 
 // ========== 标签切换 ==========

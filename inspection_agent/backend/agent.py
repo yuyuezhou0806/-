@@ -29,6 +29,11 @@ LLM_API_KEY = os.getenv("LLM_API_KEY")
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.deepseek.com/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 
+# 多模态视觉模型（阿里云 Qwen-VL）
+VISION_API_KEY = os.getenv("VISION_API_KEY")
+VISION_BASE_URL = os.getenv("VISION_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+VISION_MODEL = os.getenv("VISION_MODEL", "qwen-vl-plus")
+
 # 懒加载
 _embed_model = None
 _chroma_coll = None
@@ -377,32 +382,151 @@ def get_pricing_stats(category: str = "all") -> str:
     return "\n".join(rows_out) + notes
 
 
+# ============== 多模态图片分析 ==============
+
+def analyze_image(image_url: str, question: str = "请详细识别并描述这张图片的内容") -> str:
+    """分析用户上传的图片（截图/照片/报告页面），用 Qwen-VL 多模态模型识别内容。
+
+    Args:
+        image_url: 图片的公开 URL 地址（如 https://example.com/report.jpg）
+        question: 对图片的具体问题，默认全部描述
+
+    Returns:
+        图片的文字描述/分析结果
+    """
+    if not VISION_API_KEY:
+        return "图片分析功能未配置（VISION_API_KEY 缺失）。"
+
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key=VISION_API_KEY,
+        base_url=VISION_BASE_URL,
+    )
+
+    try:
+        resp = client.chat.completions.create(
+            model=VISION_MODEL,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                    {"type": "text", "text": question},
+                ],
+            }],
+            max_tokens=2000,
+            temperature=0.3,
+        )
+        return resp.choices[0].message.content or "（模型未返回内容）"
+    except Exception as e:
+        return f"图片分析失败: {e}"
+
+
+# ============== 检测方案生成器 ==============
+
+def generate_inspection_plan(
+    project_type: str,
+    area: str = "",
+    location: str = "",
+    requirements: str = ""
+) -> str:
+    """根据项目信息自动生成一份完整的检测方案。
+
+    Args:
+        project_type: 项目类型，如"砌体加固改造""混凝土结构""钢结构""房建验收""市政道路"等
+        area: 建筑面积或长度（如 "2000平方米"）
+        location: 项目所在地（如 "上海奉贤区"）
+        requirements: 特殊要求（如 "需要基坑监测""含防雷检测"等）
+
+    Returns:
+        结构化检测方案（含规范引用、检测项、常见缺陷、折扣参考）
+    """
+    plan = []
+    plan.append(f"# 检测方案概要\n")
+    plan.append(f"**项目类型**: {project_type}")
+    if area:
+        plan.append(f"**规模**: {area}")
+    if location:
+        plan.append(f"**地区**: {location}")
+    if requirements:
+        plan.append(f"**特殊要求**: {requirements}")
+    plan.append("")
+
+    # 1. 查规范
+    plan.append("## 一、适用规范\n")
+    try:
+        standards = search_knowledge_base(f"{project_type} 检测 适用规范 标准", "standard")
+        plan.append(standards[:2000])
+    except Exception as e:
+        plan.append(f"（规范检索失败: {e}）")
+    plan.append("")
+
+    # 2. 查同类项目检测项
+    plan.append("## 二、检测项清单\n")
+    try:
+        items = search_knowledge_base(f"{project_type} 检测项目 检测清单 检测内容", "contract")
+        plan.append(items[:2000])
+    except Exception as e:
+        plan.append(f"（合同检索失败: {e}）")
+    plan.append("")
+
+    # 3. 查历史缺陷
+    plan.append("## 三、常见缺陷与风险\n")
+    try:
+        defects = search_idi_defects(project_type)
+        plan.append(defects[:1500])
+    except Exception as e:
+        plan.append(f"（缺陷检索失败: {e}）")
+    plan.append("")
+
+    # 4. 查折扣
+    plan.append("## 四、费用参考\n")
+    try:
+        pricing = get_pricing_stats(project_type)
+        plan.append(pricing)
+    except Exception as e:
+        plan.append(f"（折扣查询失败: {e}）")
+    plan.append("")
+
+    # 5. 说明
+    plan.append("---\n")
+    plan.append("> 以上为 Agent 自动生成的初步方案，基于现有知识库数据。")
+    plan.append("> 具体检测参数以现场踏勘后调整为准。")
+    plan.append("> 咨询报价请致电: 📞 **13917073486**")
+
+    return "\n".join(plan)
+
+
 # ============== Agent ==============
 
 SYSTEM_PROMPT = """你是一名建设工程检测领域的资深咨询助手,服务于上海中测行工程检测咨询有限公司。
 
-你有三个工具:
+你有五个工具:
 - search_knowledge_base: 检索工程检测规范 / 公司合同 / 报告 / 费率表
 - search_idi_defects: 检索 IDI 工程质量险历史缺陷库
 - get_pricing_stats: 获取公司 2025/2024 年各检测类别的官方平均折扣(基于 502 个真实合同汇总)
+- analyze_image: 分析用户上传的图片（截图/照片/报告页面），提取其中的文字和信息
+- generate_inspection_plan: 生成完整检测方案（含规范/检测项/缺陷风险/费用），用于用户描述项目概况时一键出方案
 
 工作原则:
 1. **永远先检索,再回答**。规范条款号 / 检测方法 / 费率 必须来自检索结果,不要凭记忆。
 2. 用户问检测项推荐 / 标准引用 / 检测方法 → 先 search_knowledge_base
 3. 用户问"会出什么质量问题" / "要注意什么" → 同时调 search_idi_defects 找历史缺陷
 4. 用户问 **平均折扣 / X 类别折扣 / 折扣是多少 / 价格优惠 / 同比对比** → **必须调 get_pricing_stats**(不要用 search_knowledge_base 计算平均,RAG 抽样不准)
-5. 用户问报价 / 工程量(非折扣)→ search_knowledge_base 限定 source_type=rate_table 找费率表
-6. **数据来源引用规则(重要)**:
+5. 用户上传了图片 / 发了图片链接 / 说"帮我看看这张图" / "分析这个截图" → **必须调 analyze_image**,传入图片 URL 和用户的问题
+6. 用户描述了项目概况（如"砌体加固 2000平米""做一份房建检测方案"这类需要输出完整方案的）→ **必须调 generate_inspection_plan**，一次性生成含规范/检测项/缺陷/费用的完整方案
+7. 用户问报价 / 工程量(非折扣)→ search_knowledge_base 限定 source_type=rate_table 找费率表
+8. **数据来源引用规则(重要)**:
    - 引用 **规范** 时:写明规范号 + 条款号(例 "JGJT23-2011 第 4.1.3 条"),让用户可追溯
    - 引用 **公司合同 / 费率表 / 报告** 时:**严禁暴露具体文件名 / 客户名 / 项目名 / 工程地址 / 金额来源等敏感信息**。
      - ✅ 正确:"根据公司内部费率""根据公司同类项目经验""根据公司 2025 年汇总数据"
      - ❌ 错误:"《附件4:合同清单报价-标段一》""根据《杨浦区XX项目合同》""TIS合同..."
    - 如果客户名 / 项目名出现在检索结果里,**直接用"某客户""某项目"代称**
-7. 如果检索结果跟问题不太相关,坦白说"知识库里没找到直接答案",不要硬编造
-8. **联系方式统一**:任何时候需要建议用户"联系业务部""联系市场部""获取最新报价""咨询详情""下单"等,
+9. 如果检索结果跟问题不太相关,坦白说"知识库里没找到直接答案",不要硬编造
+10. **联系方式统一**:任何时候需要建议用户"联系业务部""联系市场部""获取最新报价""咨询详情""下单"等,
    **统一只给手机号 13917073486**(不要写"市场部""业务员"等模糊称谓,直接给电话)。
    例:"建议致电业务咨询:📞 **13917073486**"
-9. 输出优先用列表 / 表格 / 引用,避免大段空话
+11. 输出优先用列表 / 表格 / 引用,避免大段空话
 """
 
 
@@ -420,7 +544,7 @@ def build_agent():
         temperature=0.3,
     )
 
-    tools = [search_knowledge_base, search_idi_defects, get_pricing_stats]
+    tools = [search_knowledge_base, search_idi_defects, get_pricing_stats, analyze_image, generate_inspection_plan]
     agent = create_react_agent(
         model=llm,
         tools=tools,

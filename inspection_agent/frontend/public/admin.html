@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent 管理后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+<header class="bg-slate-800 text-white px-6 py-4"><h1 class="text-lg font-bold">Agent 用量数据看板</h1></header>
+<div class="max-w-5xl mx-auto p-6">
+  <div class="grid grid-cols-4 gap-4 mb-6" id="cards">
+    <div class="bg-white rounded-xl p-6 shadow text-center"><div class="text-3xl font-bold text-blue-600" id="today">-</div><div class="text-sm text-slate-500 mt-1">今日查询</div></div>
+    <div class="bg-white rounded-xl p-6 shadow text-center"><div class="text-3xl font-bold text-emerald-600" id="total">-</div><div class="text-sm text-slate-500 mt-1">总计查询</div></div>
+    <div class="bg-white rounded-xl p-6 shadow text-center"><div class="text-3xl font-bold text-amber-600" id="avg_len">-</div><div class="text-sm text-slate-500 mt-1">平均回复长度</div></div>
+    <div class="bg-white rounded-xl p-6 shadow text-center"><div class="text-2xl font-bold text-purple-600" id="top_tool">-</div><div class="text-sm text-slate-500 mt-1">最受欢迎工具</div></div>
+  </div>
+  <div class="grid grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl p-6 shadow"><h2 class="font-semibold mb-3">30天趋势</h2><div id="chart" class="flex items-end gap-1 h-32"></div></div>
+    <div class="bg-white rounded-xl p-6 shadow"><h2 class="font-semibold mb-3">工具使用分布</h2><div id="tools"></div></div>
+  </div>
+  <div class="mt-6 bg-white rounded-xl p-6 shadow"><h2 class="font-semibold mb-3">对话记录</h2><div id="convs"></div></div>
+</div>
+<script>
+async function load() {
+  const r = await fetch("/inspection/admin/stats");
+  const d = await r.json();
+  document.getElementById("today").textContent = d.today_queries || 0;
+  document.getElementById("total").textContent = d.total_queries || 0;
+  document.getElementById("avg_len").textContent = (d.avg_response_len || 0) + "字";
+  const tools = d.tool_usage || {};
+  const top = Object.entries(tools).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById("top_tool").textContent = top ? top[0] : "-";
+  // Chart
+  const daily = d.daily || [];
+  const max = Math.max(...daily.map(x=>x.count), 1);
+  document.getElementById("chart").innerHTML = daily.map(x=>`<div class="flex-1 flex flex-col items-center"><div style="height:${Math.round(x.count/max*100)}px" class="w-full bg-blue-400 rounded-t"></div><div class="text-[10px] text-slate-400 mt-1">${x.date.slice(5)}</div></div>`).join("");
+  // Tools
+  document.getElementById("tools").innerHTML = Object.entries(tools).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="flex justify-between py-1"><span class="text-sm">${k}</span><span class="font-bold">${v}次</span></div>`).join("") || "<p class='text-slate-400'>暂无数据</p>";
+  // Conversations
+  const cr = await fetch("/inspection/conversations");
+  const convs = await cr.json();
+  document.getElementById("convs").innerHTML = convs.slice(0,20).map(c=>`<div class="flex justify-between py-1 border-b"><span class="text-sm truncate max-w-md">${c.title||"无标题"}</span><span class="text-xs text-slate-400">${c.updated_at?.slice(0,10)}</span></div>`).join("") || "<p class='text-slate-400'>暂无对话</p>";
+}
+load();
+</script>
+</body>
+</html>
