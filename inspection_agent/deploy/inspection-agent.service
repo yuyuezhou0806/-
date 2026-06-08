@@ -1,0 +1,20 @@
+[Unit]
+Description=检测行业智能助手 Agent
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/var/www/inspection-agent
+Environment="AGENT_API_KEY=CHANGE_ME_IN_PRODUCTION"
+Environment="AGENT_CORS_ORIGINS=http://localhost:3000,http://1.15.170.85"
+Environment="AGENT_MAX_FILE_MB=10"
+Environment="PYTHONPATH=/var/www/inspection-agent/backend"
+Environment="HF_HUB_OFFLINE=1"
+Environment="TRANSFORMERS_OFFLINE=1"
+ExecStart=/var/www/inspection-agent/venv/bin/python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --workers 2
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

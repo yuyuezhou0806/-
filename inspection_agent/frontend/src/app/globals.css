@@ -2,17 +2,18 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
+  --background: #ffffff;
+  --foreground: #171a20;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 自定义 prose 颜色,Tailwind v4 typography 还在迁移 */
+/* 特斯拉风格 prose */
 .prose {
   max-width: none;
 }
@@ -20,16 +21,16 @@ body {
   font-size: 0.875rem;
 }
 .prose code {
-  background: #f4f4f5;
+  background: #f4f4f4;
   padding: 0.1rem 0.3rem;
   border-radius: 0.25rem;
   font-size: 0.85em;
 }
 .prose pre {
-  background: #18181b;
-  color: #fafafa;
+  background: #171a20;
+  color: #ffffff;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow-x: auto;
 }
 .prose pre code {

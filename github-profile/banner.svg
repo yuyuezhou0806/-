@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="100%">
+  <defs>
+    <!-- 银色渐变 -->
+    <linearGradient id="silver" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6b7280;stop-opacity:1"/>
+      <stop offset="25%" style="stop-color:#d1d5db;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#f3f4f6;stop-opacity:1"/>
+      <stop offset="75%" style="stop-color:#d1d5db;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#6b7280;stop-opacity:1"/>
+    </linearGradient>
+    <!-- 细线渐变 -->
+    <linearGradient id="line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#30363d;stop-opacity:0"/>
+      <stop offset="20%" style="stop-color:#6b7280;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#9ca3af;stop-opacity:1"/>
+      <stop offset="80%" style="stop-color:#6b7280;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#30363d;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 深灰背景 -->
+  <rect width="1200" height="320" fill="#0d1117"/>
+
+  <!-- 左侧竖向细线装饰 -->
+  <line x1="80" y1="100" x2="80" y2="220" stroke="url(#line)" stroke-width="1" opacity="0.6"/>
+  <line x1="1120" y1="100" x2="1120" y2="220" stroke="url(#line)" stroke-width="1" opacity="0.6"/>
+
+  <!-- 主标题 -->
+  <text x="600" y="155" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="52" font-weight="300" letter-spacing="12" fill="url(#silver)">
+    YUYUE ZHOU
+  </text>
+
+  <!-- 分隔细线 -->
+  <line x1="350" y1="180" x2="850" y2="180" stroke="url(#line)" stroke-width="1"/>
+
+  <!-- 副标题 -->
+  <text x="600" y="215" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="400" letter-spacing="6" fill="#6b7280">
+    AI  ·  AUTOMATION  ·  ENGINEERING
+  </text>
+
+  <!-- 底部坐标式装饰 -->
+  <text x="600" y="280" text-anchor="middle" font-family="'SF Mono', Monaco, 'Cascadia Code', monospace" font-size="10" letter-spacing="3" fill="#30363d">
+    31.2304° N, 121.4737° E
+  </text>
+</svg>

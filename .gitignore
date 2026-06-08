@@ -118,6 +118,8 @@ md_to_pdf.py
 
 # Resume (personal)
 resume.html
+resume_*.html
+rpa_interview_*.md
 
 # Office temp lock files
 ~$*
@@ -141,3 +143,26 @@ setup_nginx.py
 fix_nginx.py
 deploy_contract_web.py
 deploy_gangzi.py
+
+# AIGC temp outputs
+aigc_*.json
+aigc_project_img/
+doc_extract.json
+
+# Test data / logs
+test_csv_data/
+simple_test.*
+test_output.*
+*.log
+
+# Backup files
+idi_defects/backups/
+idi_defects/test_*.py
+idi_defects/备份*.bat
+idi_defects/查看*.bat
+
+# PDF contracts (sensitive)
+*.pdf
+
+# IDE project
+PyCharmMiscProject/

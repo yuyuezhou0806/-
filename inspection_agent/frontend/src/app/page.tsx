@@ -1,5 +1,8 @@
 "use client";
 
+// API Key — 生产环境通过构建时注入或环境变量配置
+const API_KEY = process.env.NEXT_PUBLIC_AGENT_API_KEY || "";
+
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -172,7 +175,7 @@ export default function Home() {
     try {
       const resp = await fetch("/inspection/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(API_KEY ? { "X-API-Key": API_KEY } : {}) },
         body: JSON.stringify({
           messages: newMessages.map(({ role, content }) => ({ role, content })),
         }),
@@ -264,7 +267,7 @@ export default function Home() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const resp = await fetch("/inspection/upload", { method: "POST", body: form });
+      const resp = await fetch("/inspection/upload", { method: "POST", headers: API_KEY ? { "X-API-Key": API_KEY } : {}, body: form });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ detail: "上传失败" }));
         throw new Error(err.detail || `HTTP ${resp.status}`);
@@ -309,7 +312,7 @@ export default function Home() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const resp = await fetch("/inspection/upload", { method: "POST", body: form });
+      const resp = await fetch("/inspection/upload", { method: "POST", headers: API_KEY ? { "X-API-Key": API_KEY } : {}, body: form });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ detail: "上传失败" }));
         throw new Error(err.detail || `HTTP ${resp.status}`);
@@ -341,31 +344,31 @@ export default function Home() {
     <div className="flex h-screen">
       {/* 侧边栏遮罩（手机） */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-20 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* 侧边栏 */}
-      <aside className={`fixed md:relative z-30 h-full w-64 bg-white border-r border-zinc-200 flex flex-col transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} md:flex-shrink-0`}>
-        <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-700">💬 对话记录</h2>
-          <button onClick={newConversation} className="text-xl text-zinc-400 hover:text-zinc-700 leading-none" title="新对话">+</button>
+      <aside className={`fixed md:relative z-30 h-full w-64 bg-white border-r border-[#e2e2e2] flex flex-col transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} md:flex-shrink-0`}>
+        <div className="px-4 py-3 border-b border-[#f4f4f4] flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#393c41]">💬 对话记录</h2>
+          <button onClick={newConversation} className="text-xl text-[#a2a3a5] hover:text-[#393c41] leading-none" title="新对话">+</button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.map((c) => (
             <div
               key={c.id}
               onClick={() => switchConversation(c.id)}
-              className={`px-4 py-2.5 cursor-pointer border-b border-zinc-50 group flex items-center justify-between ${c.id === activeConvId ? "bg-blue-50 border-l-2 border-l-blue-500" : "hover:bg-zinc-50"}`}
+              className={`px-4 py-2.5 cursor-pointer border-b border-zinc-50 group flex items-center justify-between ${c.id === activeConvId ? "bg-[#f4f4f4] border-l-2 border-l-blue-500" : "hover:bg-[#f4f4f4]"}`}
             >
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium text-zinc-700 truncate">{c.title}</div>
-                <div className="text-[10px] text-zinc-400 mt-0.5">
+                <div className="text-xs font-medium text-[#393c41] truncate">{c.title}</div>
+                <div className="text-[10px] text-[#a2a3a5] mt-0.5">
                   {new Date(c.createdAt).toLocaleDateString("zh-CN")} · {c.messages.length} 条消息
                 </div>
               </div>
               <button
                 onClick={(e) => deleteConversation(c.id, e)}
-                className="text-zinc-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition ml-2"
+                className="text-[#d0d1d2] hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition ml-2"
               >
                 ✕
               </button>
@@ -377,31 +380,31 @@ export default function Home() {
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col h-screen min-w-0">
         {/* Header */}
-        <header className="bg-white border-b border-zinc-200 px-4 py-3 flex items-center justify-between flex-shrink-0">
+        <header className="bg-white border-b border-[#e2e2e2] px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden text-zinc-600 text-lg"
+              className="md:hidden text-[#5c5e62] text-lg"
             >
               ☰
             </button>
-            <h1 className="text-lg font-semibold text-zinc-900">🏗️ 检测行业 Agent</h1>
+            <h1 className="text-lg font-semibold text-[#171a20]">检测行业 Agent</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={clearCurrentChat}
               disabled={messages.length === 0}
-              className="text-xs text-zinc-500 hover:text-zinc-800 border border-zinc-200 rounded-md px-2.5 py-1 disabled:opacity-30 transition"
+              className="text-xs text-[#5c5e62] hover:text-[#171a20] border border-[#e2e2e2] rounded-2xl px-2.5 py-1 disabled:opacity-30 transition"
             >
-              🗑 清空
+              清空
             </button>
             <button
               onClick={() => setFeedbackOpen(true)}
-              className="text-xs text-zinc-600 hover:text-zinc-900 border border-zinc-300 rounded-md px-3 py-1.5 transition"
+              className="text-xs text-[#5c5e62] hover:text-[#171a20] border border-[#d0d1d2] rounded-2xl px-3 py-1.5 transition"
             >
               📝 反馈
             </button>
-            <span className="text-xs text-zinc-400 hidden sm:inline">DeepSeek + bge-zh + Chroma</span>
+            <span className="text-xs text-[#a2a3a5] hidden sm:inline">DeepSeek + bge-zh + Chroma</span>
           </div>
         </header>
 
@@ -410,14 +413,14 @@ export default function Home() {
         <div className="max-w-3xl mx-auto space-y-6">
           {messages.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-zinc-600 mb-6 text-sm">问点啥呢?</p>
+              <p className="text-[#5c5e62] mb-6 text-sm">问点啥呢?</p>
               <div className="grid sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
                 {SUGGESTED_QUERIES.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(q)}
                     disabled={loading}
-                    className="text-left text-sm bg-white border border-zinc-200 rounded-lg p-3 hover:border-zinc-400 hover:bg-zinc-50 transition disabled:opacity-50"
+                    className="text-left text-sm bg-white rounded-2xl p-3 shadow-sm hover:shadow-md hover:bg-[#f4f4f4] transition disabled:opacity-50"
                   >
                     {q}
                   </button>
@@ -431,7 +434,7 @@ export default function Home() {
           ))}
 
           {loading && messages[messages.length - 1]?.content === "" && (
-            <div className="flex items-center gap-2 text-zinc-500 text-sm">
+            <div className="flex items-center gap-2 text-[#5c5e62] text-sm">
               <div className="animate-pulse">●●●</div>
               <span>Agent 思考中...</span>
             </div>
@@ -442,18 +445,18 @@ export default function Home() {
       {/* Input */}
       <form
         onSubmit={handleSubmit}
-        className="border-t border-zinc-200 bg-white px-6 py-4"
+        className="border-t border-[#e2e2e2] bg-white px-6 py-4"
       >
         {/* 文件附件提示 */}
         {uploadedFileCtx.current && (
-          <div className="max-w-3xl mx-auto mb-2 flex items-center gap-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5">
+          <div className="max-w-3xl mx-auto mb-2 flex items-center gap-2 text-xs text-[#171a20] bg-[#f4f4f4] border border-[#e2e2e2] rounded-2xl px-3 py-1.5">
             <span>📎</span>
             <span className="font-medium">{uploadedFileCtx.current.name}</span>
-            <span className="text-blue-400">已附加</span>
+            <span className="text-[#a2a3a5]">已附加</span>
             <button
               type="button"
               onClick={() => { uploadedFileCtx.current = null; }}
-              className="ml-auto text-blue-400 hover:text-red-500"
+              className="ml-auto text-[#a2a3a5] hover:text-red-500"
             >
               ✕ 移除
             </button>
@@ -461,7 +464,7 @@ export default function Home() {
         )}
         <div className="max-w-3xl mx-auto flex gap-2 items-end">
           {/* 文件上传 */}
-          <label className="flex items-center justify-center w-10 h-10 rounded-lg border border-zinc-300 bg-white cursor-pointer hover:bg-zinc-50 transition flex-shrink-0" title="上传文件 (PDF/Word/Excel/图片等)">
+          <label className="flex items-center justify-center w-10 h-10 rounded-2xl border border-[#d0d1d2] bg-white cursor-pointer hover:bg-[#f4f4f4] transition flex-shrink-0" title="上传文件 (PDF/Word/Excel/图片等)">
             {uploading
               ? <span className="text-sm animate-pulse">⏳</span>
               : <span className="text-xl">📎</span>
@@ -492,13 +495,13 @@ export default function Home() {
             }}
             placeholder="输入工程检测问题(Enter 发送 / Shift+Enter 换行)"
             rows={2}
-            className="flex-1 resize-none rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 resize-none rounded-2xl border border-[#d0d1d2] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3e6ae1]"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading}
-            className="bg-zinc-900 text-white px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-30 hover:bg-zinc-700 transition"
+            className="bg-[#171a20] text-white px-6 py-2.5 rounded-full text-sm font-medium disabled:opacity-30 hover:bg-[#000000] transition shadow-sm"
           >
             {loading ? "..." : "发送"}
           </button>
@@ -520,7 +523,7 @@ function MessageView({ message }: { message: Message }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="bg-zinc-900 text-white rounded-lg px-4 py-2.5 text-sm max-w-[80%]">
+        <div className="bg-[#171a20] text-white rounded-2xl px-4 py-2.5 text-sm max-w-[80%]">
           {message.content}
         </div>
       </div>
@@ -537,7 +540,7 @@ function MessageView({ message }: { message: Message }) {
         </div>
       )}
       {message.content && (
-        <div className="bg-white border border-zinc-200 rounded-lg px-5 py-4 prose prose-sm prose-zinc max-w-none">
+        <div className="bg-white border border-[#e2e2e2] rounded-2xl px-5 py-4 prose prose-sm prose-zinc max-w-none">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {message.content}
           </ReactMarkdown>
@@ -551,21 +554,21 @@ function ToolEventView({ event }: { event: ToolEvent }) {
   if (event.kind === "call") {
     const argsStr = event.args ? JSON.stringify(event.args).slice(0, 120) : "";
     return (
-      <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5 text-xs text-blue-900">
+      <div className="inline-flex items-center gap-2 bg-[#f4f4f4] border border-[#e2e2e2] rounded-2xl px-3 py-1.5 text-xs text-[#171a20]">
         <span>🔧</span>
         <span className="font-mono">{event.name}</span>
-        <span className="text-blue-700 truncate max-w-md">{argsStr}</span>
+        <span className="text-[#393c41] truncate max-w-md">{argsStr}</span>
       </div>
     );
   }
 
   return (
-    <details className="bg-zinc-50 border border-zinc-200 rounded-md px-3 py-1.5 text-xs text-zinc-700">
+    <details className="bg-[#f4f4f4] border border-[#e2e2e2] rounded-2xl px-3 py-1.5 text-xs text-[#393c41]">
       <summary className="cursor-pointer flex items-center gap-2">
         <span>📄</span>
         <span>工具返回</span>
       </summary>
-      <pre className="mt-2 whitespace-pre-wrap text-zinc-600 text-xs font-mono">
+      <pre className="mt-2 whitespace-pre-wrap text-[#5c5e62] text-xs font-mono">
         {event.preview}
       </pre>
     </details>
@@ -597,7 +600,7 @@ function FeedbackModal({
     try {
       const resp = await fetch("/inspection/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(API_KEY ? { "X-API-Key": API_KEY } : {}) },
         body: JSON.stringify({
           message: message.trim(),
           rating,
@@ -621,27 +624,27 @@ function FeedbackModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4"
+        className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         {submitted ? (
           <div className="text-center py-8">
             <div className="text-5xl mb-3">✅</div>
-            <h2 className="text-lg font-semibold text-zinc-900">感谢反馈!</h2>
-            <p className="text-sm text-zinc-500 mt-1">已收到,会持续改进 🙏</p>
+            <h2 className="text-lg font-semibold text-[#171a20]">感谢反馈!</h2>
+            <p className="text-sm text-[#5c5e62] mt-1">已收到,会持续改进 🙏</p>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-zinc-900">📝 用户反馈</h2>
+              <h2 className="text-lg font-semibold text-[#171a20]">📝 用户反馈</h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-zinc-400 hover:text-zinc-700 text-xl leading-none"
+                className="text-[#a2a3a5] hover:text-[#393c41] text-xl leading-none"
               >
                 ×
               </button>
@@ -649,7 +652,7 @@ function FeedbackModal({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs text-zinc-600 mb-1.5">
+                <label className="block text-xs text-[#5c5e62] mb-1.5">
                   整体评价(可选)
                 </label>
                 <div className="flex gap-1">
@@ -658,10 +661,10 @@ function FeedbackModal({
                       key={n}
                       type="button"
                       onClick={() => setRating(n === rating ? null : n)}
-                      className={`w-9 h-9 rounded-md border text-base transition ${
+                      className={`w-9 h-9 rounded-2xl border text-base transition ${
                         rating !== null && n <= rating
                           ? "bg-yellow-50 border-yellow-300 text-yellow-600"
-                          : "border-zinc-300 text-zinc-400 hover:bg-zinc-50"
+                          : "border-[#d0d1d2] text-[#a2a3a5] hover:bg-[#f4f4f4]"
                       }`}
                     >
                       ★
@@ -671,15 +674,15 @@ function FeedbackModal({
               </div>
 
               {relatedQuery && (
-                <div className="bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2 text-xs text-zinc-600">
-                  <span className="text-zinc-400">相关问题:</span>{" "}
+                <div className="bg-[#f4f4f4] border border-[#e2e2e2] rounded-2xl px-3 py-2 text-xs text-[#5c5e62]">
+                  <span className="text-[#a2a3a5]">相关问题:</span>{" "}
                   {relatedQuery.slice(0, 80)}
                   {relatedQuery.length > 80 ? "..." : ""}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs text-zinc-600 mb-1.5">
+                <label className="block text-xs text-[#5c5e62] mb-1.5">
                   反馈内容 <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -688,12 +691,12 @@ function FeedbackModal({
                   placeholder="哪里好 / 哪里需要改进 / 有什么 bug / 想加什么功能..."
                   rows={4}
                   required
-                  className="w-full resize-none rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full resize-none rounded-2xl border border-[#d0d1d2] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3e6ae1]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-zinc-600 mb-1.5">
+                <label className="block text-xs text-[#5c5e62] mb-1.5">
                   你的姓名(可选,匿名也行)
                 </label>
                 <input
@@ -701,12 +704,12 @@ function FeedbackModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="例:王工"
-                  className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-2xl border border-[#d0d1d2] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#3e6ae1]"
                 />
               </div>
 
               {error && (
-                <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-2xl px-3 py-2">
                   {error}
                 </div>
               )}
@@ -715,14 +718,14 @@ function FeedbackModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-zinc-600 hover:text-zinc-900"
+                  className="px-4 py-2 text-sm text-[#5c5e62] hover:text-[#171a20]"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !message.trim()}
-                  className="bg-zinc-900 text-white px-5 py-2 rounded-md text-sm font-medium disabled:opacity-30 hover:bg-zinc-700 transition"
+                  className="bg-[#171a20] text-white px-6 py-2.5 rounded-full text-sm font-medium disabled:opacity-30 hover:bg-[#000000] transition shadow-sm"
                 >
                   {submitting ? "提交中..." : "提交"}
                 </button>

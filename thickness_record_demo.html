@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>厚度原始记录模拟器</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --text2: #94a3b8; --accent: #38bdf8;
+    --g1: #a78bfa; --g2: #34d399; --warn: #fbbf24; --good: #34d399; --bad: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; justify-content: center;
+    padding: 20px;
+  }
+  .container { max-width: 900px; width: 100%; margin-top: 20px; }
+
+  h1 {
+    text-align: center; font-size: 1.6rem; margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--g1), var(--g2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle { text-align: center; color: var(--text2); font-size: 0.85rem; margin-bottom: 24px; }
+
+  .controls {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .controls label { font-size: 0.8rem; color: var(--text2); }
+  .controls input {
+    width: 80px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 0.9rem; text-align: center;
+  }
+  button {
+    padding: 10px 28px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,102,241,.4); }
+  button:active { transform: scale(0.97); }
+
+  .row { display: flex; gap: 20px; flex-wrap: wrap; }
+  .panel {
+    flex: 1; min-width: 360px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-size: 0.95rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.g1 { background: var(--g1); }
+  .dot.g2 { background: var(--g2); }
+
+  .constraint-badge {
+    font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;
+    background: rgba(251,191,36,.15); color: var(--warn);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { color: var(--text2); font-weight: 500; font-size: 0.78rem; padding: 5px 8px; text-align: center; }
+  th.row-label { text-align: left; color: var(--text2); font-weight: 500; font-size: 0.78rem; }
+  td { padding: 7px 8px; text-align: center; border-bottom: 1px solid var(--border); }
+  td.row-label { color: var(--text2); font-size: 0.82rem; text-align: left; }
+  td.median {
+    font-weight: 700; color: #facc15; font-size: 1rem;
+  }
+  td.deviation {
+    font-size: 0.82rem;
+  }
+  td.deviation.ok { color: var(--good); }
+  td.deviation.warn { color: var(--bad); }
+  tr:last-child td { border-bottom: none; }
+
+  .result-box {
+    margin-top: 14px; padding: 12px 16px; border-radius: 10px;
+    font-weight: 700; font-size: 1.05rem; text-align: center;
+  }
+  .result-box.g1 { background: rgba(167,139,250,.12); color: var(--g1); border: 1px solid rgba(167,139,250,.25); }
+  .result-box.g2 { background: rgba(52,211,153,.12); color: var(--g2); border: 1px solid rgba(52,211,153,.25); }
+
+  .summary-box {
+    background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.15));
+    border: 1px solid rgba(99,102,241,.3); border-radius: 14px;
+    padding: 20px; text-align: center;
+  }
+  .summary-box h2 { font-size: 1rem; margin-bottom: 10px; }
+  .big-num {
+    font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #34d399);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  .seed-row { font-size: 0.75rem; color: var(--text2); text-align: center; margin-top: 8px; }
+
+  .stats-bar {
+    display: flex; justify-content: center; gap: 28px; margin-bottom: 20px;
+    padding: 10px 20px; border-radius: 12px;
+    background: rgba(30,41,59,.6); border: 1px solid var(--border);
+  }
+  .stats-bar .stat-item { text-align: center; }
+  .stats-bar .stat-val { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+  .stats-bar .stat-label { font-size: 0.7rem; color: var(--text2); margin-top: 2px; }
+
+  @media (max-width: 800px) { .row { flex-direction: column; } .panel { min-width: 0; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>厚度原始记录模拟器</h1>
+  <p class="subtitle">15个数 → 每3个一列(列内偏差≤0.20, ±0.10) → 中位值 → 5个中位值平均(不修约) → 保留2位小数</p>
+
+  <div class="controls">
+    <div>
+      <label>组1下限</label>
+      <input id="r1l" type="number" value="8.00" step="0.01">
+    </div>
+    <div>
+      <label>组1上限</label>
+      <input id="r1h" type="number" value="12.00" step="0.01">
+    </div>
+    <div>
+      <label>偏移下限</label>
+      <input id="offl" type="number" value="0.15" step="0.01">
+    </div>
+    <div>
+      <label>偏移上限</label>
+      <input id="offh" type="number" value="0.25" step="0.01">
+    </div>
+    <button onclick="generate()">生成</button>
+  </div>
+
+  <div class="row">
+    <!-- Group 1 -->
+    <div class="panel" id="panel1">
+      <h2><span class="dot g1"></span> 第1组 &nbsp;(<span id="r1label">8.00 ~ 12.00</span>) <span class="constraint-badge">±0.10</span></h2>
+      <table>
+        <thead><tr><th></th><th>Col1</th><th>Col2</th><th>Col3</th><th>Col4</th><th>Col5</th></tr></thead>
+        <tbody id="tbody1"></tbody>
+      </table>
+      <div class="result-box g1" id="result1">—</div>
+    </div>
+
+    <!-- Group 2 -->
+    <div class="panel" id="panel2">
+      <h2><span class="dot g2"></span> 第2组 &nbsp;(原始数 + <span id="offlabel">0.15~0.25</span>)</h2>
+      <table>
+        <thead><tr><th></th><th>Col1</th><th>Col2</th><th>Col3</th><th>Col4</th><th>Col5</th></tr></thead>
+        <tbody id="tbody2"></tbody>
+      </table>
+      <div class="result-box g2" id="result2">—</div>
+    </div>
+  </div>
+
+  <div class="summary-box">
+    <h2>两组对比</h2>
+    <div style="display:flex; justify-content:center; gap:48px; flex-wrap:wrap; margin-top:12px;">
+      <div>
+        <div style="color:var(--text2); font-size:0.8rem;">第1组 中位数平均</div>
+        <div class="big-num" id="final1">—</div>
+      </div>
+      <div>
+        <div style="color:var(--text2); font-size:0.8rem;">第2组 中位数平均</div>
+        <div class="big-num" id="final2">—</div>
+      </div>
+      <div>
+        <div style="color:var(--text2); font-size:0.8rem;">差值</div>
+        <div class="big-num" id="diff">—</div>
+      </div>
+    </div>
+    <p class="seed-row" id="seedInfo"></p>
+  </div>
+</div>
+
+<script>
+function fmt(n) { return n.toFixed(2); }
+
+function generate() {
+  const r1l = parseFloat(document.getElementById('r1l').value) || 8.00;
+  const r1h = parseFloat(document.getElementById('r1h').value) || 12.00;
+  const offl = parseFloat(document.getElementById('offl').value) || 0.15;
+  const offh = parseFloat(document.getElementById('offh').value) || 0.25;
+
+  document.getElementById('r1label').textContent = `${fmt(r1l)} ~ ${fmt(r1h)}`;
+  document.getElementById('offlabel').textContent = `${fmt(offl)} ~ ${fmt(offh)}`;
+
+  if (typeof _prevAvg1 === 'undefined') { window._prevAvg1 = null; window._prevAvg2 = null; }
+
+  // Pure median: sorted middle of each group of 3
+  function medians(arr) {
+    const m = [];
+    for (let i = 0; i < 15; i += 3) {
+      m.push(arr.slice(i, i+3).sort((a,b) => a-b)[1]);
+    }
+    return m;
+  }
+
+  // Max deviation per group of 3
+  function deviations(arr) {
+    const d = [];
+    for (let i = 0; i < 15; i += 3) {
+      const chunk = arr.slice(i, i+3);
+      d.push(Math.max(...chunk) - Math.min(...chunk));
+    }
+    return d;
+  }
+
+  let seed, nums1, nums2, med1, med2, avg1, avg2;
+  const makeRng = s => {
+    let v = s;
+    return () => { v = (v * 1664525 + 1013904223) & 0xFFFFFFFF; return (v >>> 0) / 0xFFFFFFFF; };
+  };
+
+  let retries = 100;
+  let boring1, boring2, spreadOk;
+  let centerHi = null;
+  do {
+    seed = Math.floor(Math.random() * 1e9);
+    const rand = makeRng(seed);
+
+    // ── Group 1: 5 groups of 3, each group deviation ≤ 0.20 (±0.10) ──
+    nums1 = [];
+    const margin = 0.10;
+    const cLo = Math.max(r1l + margin, r1l);
+    const cHiDefault = Math.min(r1h - margin, r1h);
+    let cHi = centerHi !== null ? Math.min(cHiDefault, centerHi) : cHiDefault;
+    if (cLo > cHi) cHi = cLo;
+    for (let g = 0; g < 5; g++) {
+      const center = cLo + rand() * (cHi - cLo);
+      for (let i = 0; i < 3; i++) {
+        let n = center + (rand() - 0.5) * 2 * margin;
+        n = Math.max(r1l, Math.min(r1h, n));
+        nums1.push(Math.round(n * 100) / 100);
+      }
+    }
+
+    // ── Group 2: each = group1[i] + random(offl, offh) ──
+    nums2 = nums1.map(x => Math.round((x + offl + rand() * (offh - offl)) * 100) / 100);
+
+    med1 = medians(nums1);
+    med2 = medians(nums2);
+    // Raw average of 5 medians, 2 decimal places (no rounding step)
+    avg1 = Math.round((med1.reduce((a,b) => a+b, 0) / 5) * 100) / 100;
+    avg2 = Math.round((med2.reduce((a,b) => a+b, 0) / 5) * 100) / 100;
+
+    boring1 = Math.abs(avg1 % 1.0) < 0.005;
+    boring2 = Math.abs(avg2 % 1.0) < 0.005;
+
+    const spread1 = Math.max(...med1) - Math.min(...med1);
+    const spread2 = Math.max(...med2) - Math.min(...med2);
+    spreadOk = spread1 <= 0.10 && spread2 <= 0.10;
+
+    if (boring1 || boring2 || !spreadOk) {
+      if (centerHi === null) centerHi = r1h - 0.12;
+      else { const stepNarrow = Math.max(0.01, (r1h - r1l) / 40); centerHi -= stepNarrow; }
+    }
+  } while (--retries > 0 &&
+           ((avg1 === window._prevAvg1 && avg2 === window._prevAvg2) ||
+            boring1 || boring2 || !spreadOk));
+
+  window._prevAvg1 = avg1;
+  window._prevAvg2 = avg2;
+
+  function renderTable(tbodyId, nums, meds) {
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+    const devs = deviations(nums);
+    const rows = [
+      { label: '数1', data: [0,1,2,3,4].map(i => nums[i*3]) },
+      { label: '数2', data: [0,1,2,3,4].map(i => nums[i*3+1]) },
+      { label: '数3', data: [0,1,2,3,4].map(i => nums[i*3+2]) },
+      { label: '中位值', data: meds, cls: 'median' },
+      { label: '偏差', data: devs.map(d => Math.round(d * 100) / 100), cls: 'deviation',
+        clsFn: v => v <= 0.20 ? 'deviation ok' : 'deviation warn' },
+    ];
+    for (const row of rows) {
+      const tr = document.createElement('tr');
+      let html = `<td class="row-label">${row.label}</td>`;
+      for (let i = 0; i < row.data.length; i++) {
+        const v = row.data[i];
+        const cls = row.clsFn ? row.clsFn(v) : (row.cls || '');
+        html += `<td class="${cls}">${fmt(v)}</td>`;
+      }
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+    }
+  }
+
+  renderTable('tbody1', nums1, med1);
+  renderTable('tbody2', nums2, med2);
+
+  const devs1 = deviations(nums1);
+  const spread1 = Math.max(...med1) - Math.min(...med1);
+  const spread2 = Math.max(...med2) - Math.min(...med2);
+  document.getElementById('result1').textContent =
+    `中位值: [${med1.map(fmt).join(', ')}]  →  平均: ${avg1.toFixed(2)}  |  偏差: ${Math.max(...devs1).toFixed(2)}  |  中位差: ${spread1.toFixed(2)}`;
+
+  document.getElementById('result2').textContent =
+    `中位值: [${med2.map(fmt).join(', ')}]  →  平均: ${avg2.toFixed(2)}  |  中位差: ${spread2.toFixed(2)}`;
+
+  document.getElementById('final1').textContent = avg1.toFixed(2);
+  document.getElementById('final2').textContent = avg2.toFixed(2);
+  document.getElementById('diff').textContent = (avg2 - avg1).toFixed(2);
+  document.getElementById('seedInfo').textContent = `Seed: ${seed}`;
+}
+
+// Initial generation
+generate();
+</script>
+</body>
+</html>

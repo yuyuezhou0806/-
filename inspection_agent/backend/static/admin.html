@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent 后台 · 管理面板</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:#f5f3ef; color:#333; }
+.login-box { max-width:360px; margin:100px auto; background:#fff; border-radius:12px; padding:40px; box-shadow:0 2px 12px rgba(0,0,0,0.08); text-align:center; }
+.login-box h1 { font-size:20px; color:#e07a3e; margin-bottom:6px; }
+.login-box .sub { color:#999; font-size:13px; margin-bottom:24px; }
+.login-box input { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; font-size:14px; }
+.login-box button { width:100%; padding:12px; background:#e07a3e; color:#fff; border:none; border-radius:8px; font-size:15px; cursor:pointer; }
+.login-box .err { color:#e74c3c; font-size:13px; margin-top:8px; }
+.dashboard { display:none; max-width:1100px; margin:0 auto; padding:24px 20px; }
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.header h1 { font-size:22px; color:#e07a3e; }
+.header .user { font-size:13px; color:#999; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+.card { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,0.06); }
+.card .label { font-size:12px; color:#999; margin-bottom:6px; }
+.card .value { font-size:28px; font-weight:700; color:#333; }
+.card .value.orange { color:#e07a3e; }
+.tabs { display:flex; gap:0; margin-bottom:16px; }
+.tab { padding:10px 20px; background:#fff; border:1px solid #e0ddd8; cursor:pointer; font-size:14px; color:#666; }
+.tab:first-child { border-radius:8px 0 0 8px; }
+.tab:last-child { border-radius:0 8px 8px 0; }
+.tab.active { background:#e07a3e; color:#fff; border-color:#e07a3e; }
+.panel { background:#fff; border-radius:10px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,0.06); display:none; }
+.panel.active { display:block; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 8px; border-bottom:2px solid #f0ebe3; color:#999; font-weight:500; }
+td { padding:8px; border-bottom:1px solid #f5f3ef; }
+tr:hover td { background:#fdfaf7; }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; }
+.badge.ok { background:#d4edda; color:#155724; }
+.badge.err { background:#f8d7da; color:#721c24; }
+.pagination { margin-top:12px; display:flex; gap:8px; justify-content:center; }
+.pagination button { padding:6px 14px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; }
+.pagination button:disabled { opacity:0.4; cursor:not-allowed; }
+.logout { padding:6px 16px; border:1px solid #e07a3e; color:#e07a3e; background:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="login-box" id="loginBox">
+  <h1>Agent 后台</h1>
+  <p class="sub">管理面板 · 登录</p>
+  <input id="loginUser" placeholder="用户名" value="admin">
+  <input id="loginPass" type="password" placeholder="密码">
+  <button onclick="doLogin()">登录</button>
+  <p class="err" id="loginErr"></p>
+  <p style="margin-top:16px;font-size:12px;color:#bbb;">首次使用？先 <a href="javascript:doSetup()" style="color:#e07a3e;">创建管理员</a></p>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <div class="header">
+    <h1>Agent 后台</h1>
+    <div>
+      <span class="user" id="userLabel"></span>
+      <button class="logout" onclick="doLogout()">退出</button>
+    </div>
+  </div>
+
+  <div class="cards" id="statsCards"></div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('conversations')">对话记录</div>
+    <div class="tab" onclick="switchTab('feedback')">用户反馈</div>
+  </div>
+
+  <div class="panel active" id="panel-conversations"></div>
+  <div class="panel" id="panel-feedback"></div>
+</div>
+
+<script>
+const API = '/inspection/admin';
+let TOKEN = localStorage.getItem('gangzi_admin_token') || '';
+
+function api(path, opts = {}) {
+  return fetch(API + path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': TOKEN,
+      ...(opts.headers || {}),
+    },
+  }).then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.detail || '请求失败'); }));
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  try {
+    const r = await api('/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    TOKEN = r.token;
+    localStorage.setItem('gangzi_admin_token', TOKEN);
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('userLabel').textContent = '👤 ' + r.username;
+    loadAll();
+  } catch (e) {
+    document.getElementById('loginErr').textContent = e.message;
+  }
+}
+
+async function doSetup() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  if (!p) return alert('请先输入密码');
+  try {
+    await api('/setup', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    alert('管理员创建成功，请点击登录');
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('gangzi_admin_token');
+  TOKEN = '';
+  document.getElementById('loginBox').style.display = '';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+async function loadAll() {
+  await loadStats();
+  await loadConversations();
+  await loadFeedback();
+}
+
+async function loadStats() {
+  try {
+    const s = await api('/stats');
+    const cards = [
+      { label: '今日请求', value: s.daily[0]?.requests || 0, cls: 'orange' },
+      { label: '总请求(30天)', value: s.total_requests, cls: '' },
+      { label: '工具调用(30天)', value: s.total_tool_calls, cls: '' },
+      { label: '活跃用户(30天)', value: s.unique_users, cls: '' },
+      { label: '平均耗时', value: (s.avg_duration_ms / 1000).toFixed(1) + 's', cls: '' },
+      { label: '错误率', value: s.total_requests ? (s.total_errors / s.total_requests * 100).toFixed(1) + '%' : '0%', cls: '' },
+    ];
+    document.getElementById('statsCards').innerHTML = cards.map(c =>
+      '<div class="card"><div class="label">' + c.label + '</div><div class="value' + (c.cls ? ' ' + c.cls : '') + '">' + c.value + '</div></div>'
+    ).join('');
+  } catch (e) { }
+}
+
+async function loadConversations(page = 0) {
+  try {
+    const r = await api('/conversations?limit=20&offset=' + (page * 20));
+    let html = '<table><tr><th>时间</th><th>IP</th><th>问题</th><th>耗时</th><th>状态</th></tr>';
+    for (const c of r.items) {
+      html += '<tr>' +
+        '<td>' + (c.timestamp || '').slice(5, 16) + '</td>' +
+        '<td>' + (c.ip || '-') + '</td>' +
+        '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + h(c.question) + '">' + h(c.question).slice(0, 50) + '</td>' +
+        '<td>' + (c.duration_ms / 1000).toFixed(1) + 's</td>' +
+        '<td>' + (c.error ? '<span class="badge err">错误</span>' : '<span class="badge ok">正常</span>') + '</td>' +
+        '</tr>';
+    }
+    html += '</table>';
+    html += '<div class="pagination">' +
+      '<button ' + (page === 0 ? 'disabled' : '') + ' onclick="loadConversations(' + (page - 1) + ')">上一页</button>' +
+      '<span style="padding:6px">第 ' + (page + 1) + ' 页 / 共 ' + Math.ceil(r.total / 20) + ' 条</span>' +
+      '<button onclick="loadConversations(' + (page + 1) + ')">下一页</button>' +
+      '</div>';
+    document.getElementById('panel-conversations').innerHTML = html;
+  } catch (e) { }
+}
+
+async function loadFeedback(page = 0) {
+  try {
+    const r = await api('/feedback?limit=20&offset=' + (page * 20));
+    let html = '<table><tr><th>时间</th><th>姓名</th><th>评分</th><th>内容</th><th>相关问题</th></tr>';
+    for (const f of r.items) {
+      html += '<tr>' +
+        '<td>' + (f.timestamp || '').slice(0, 16) + '</td>' +
+        '<td>' + (f.name || '匿名') + '</td>' +
+        '<td>' + (f.rating ? '★'.repeat(f.rating) : '-') + '</td>' +
+        '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + h(f.message) + '">' + h(f.message).slice(0, 60) + '</td>' +
+        '<td style="max-width:200px">' + h((f.related_query || '-')).slice(0, 40) + '</td>' +
+        '</tr>';
+    }
+    html += '</table>';
+    if (r.total > 20) {
+      html += '<div class="pagination">' +
+        '<button ' + (page === 0 ? 'disabled' : '') + ' onclick="loadFeedback(' + (page - 1) + ')">上一页</button>' +
+        '<span style="padding:6px">' + (page * 20 + 1) + '-' + Math.min((page + 1) * 20, r.total) + ' / ' + r.total + '</span>' +
+        '<button ' + ((page + 1) * 20 >= r.total ? 'disabled' : '') + ' onclick="loadFeedback(' + (page + 1) + ')">下一页</button>' +
+        '</div>';
+    }
+    document.getElementById('panel-feedback').innerHTML = html;
+  } catch (e) { }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', t.textContent.includes(tab === 'conversations' ? '对话' : '反馈')));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function h(s) { return (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// Auto login
+if (TOKEN) {
+  api('/me').then(r => {
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('userLabel').textContent = '👤 ' + r.username;
+    loadAll();
+  }).catch(() => { TOKEN = ''; localStorage.removeItem('gangzi_admin_token'); });
+}
+</script>
+</body>
+</html>

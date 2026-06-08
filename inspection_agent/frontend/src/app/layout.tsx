@@ -8,7 +8,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "刚子 · 检测行业智能助手",
+  title: "检测行业 Agent — 上海中测行",
   description: "建设工程检测领域智能助手,基于规范库 + 历史合同 + IDI 缺陷库的 RAG Agent",
 };
 
