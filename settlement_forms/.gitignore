@@ -1,0 +1,11 @@
+*.doc
+*.docx
+*.xlsx
+output/
+__pycache__/
+*.pyc
+*.log
+.env
+runs.json
+excel_data.json
+check_output*.json

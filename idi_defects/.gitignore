@@ -1,1 +1,11 @@
 server.log
+*.db
+*.db.*
+backups/
+*.backup.*
+*.docx
+*.xlsx
+word_images/
+__pycache__/
+*.pyc
+.env

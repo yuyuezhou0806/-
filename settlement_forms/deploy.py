@@ -16,7 +16,7 @@ import paramiko
 # ========== 配置 ==========
 SERVER_IP = "1.15.170.85"
 USER = "ubuntu"
-PASSWORD = "JMXU:6WfdgH3n-Q="
+PASSWORD = os.environ.get("SETTLEMENT_SSH_PASSWORD", "")
 REMOTE_DIR = "/home/ubuntu/settlement-form"
 PORT = 8080
 # ==========================
@@ -50,6 +50,9 @@ def upload_file(sftp, local_path, remote_path):
 
 
 def main():
+    if not PASSWORD:
+        raise RuntimeError("请先设置环境变量 SETTLEMENT_SSH_PASSWORD")
+
     print(f"部署目标: {USER}@{SERVER_IP}:{PORT}")
     print(f"本地目录: {LOCAL_DIR}")
     print()

@@ -11,7 +11,7 @@ from pathlib import Path
 # ========== 配置 ==========
 SERVER_HOST = "1.15.170.85"
 SERVER_USER = "ubuntu"
-SERVER_PASS = "JMXU:6WfdgH3n-Q="
+SERVER_PASS = os.environ.get("IDI_SSH_PASSWORD", "")
 REMOTE_DB_PATH = "/var/www/idi-defects/users.db"
 
 # 本地备份目录（脚本所在目录下的 backups 文件夹）
@@ -81,6 +81,9 @@ def export_txt(db_path: Path):
 
 
 def backup():
+    if not SERVER_PASS:
+        raise RuntimeError("请先设置环境变量 IDI_SSH_PASSWORD")
+
     BACKUP_DIR.mkdir(exist_ok=True)
 
     # 生成本地备份文件名（带时间戳）
