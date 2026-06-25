@@ -3,6 +3,7 @@ server.log
 *.db.*
 backups/
 *.backup.*
+*_backup.py
 *.docx
 *.xlsx
 word_images/
