@@ -2,6 +2,9 @@
 
 结算报审单批量生成工具。
 
+> 本项目的公开版本已迁移至独立仓库：
+> https://github.com/yuyuezhou0806/settlement-forms
+
 将 Excel 中的结构化结算信息写入标准 Word 模板，减少重复录入、人员名称错误和格式偏差。
 
 [在线使用](http://1.15.170.85/settlement/)
@@ -32,4 +35,3 @@ python web_app.py
 ## Status
 
 线上系统持续可用，最近整理于 2026-06。
-

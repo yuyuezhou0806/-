@@ -2,6 +2,9 @@
 
 合同信息提取与文档自动化原型。
 
+> 本项目的公开版本已迁移至独立仓库：
+> https://github.com/yuyuezhou0806/contract-automation-suite
+
 项目用于从截图和业务资料中识别工程字段，辅助完成合同信息录入、模板填充和文档生成。
 
 ## 功能
@@ -30,4 +33,3 @@ uvicorn main:app --reload
 ## Privacy
 
 公开仓库不应包含真实合同数据库、客户资料、上传文件、服务器日志或部署凭证。
-
